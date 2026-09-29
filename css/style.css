@@ -1,0 +1,590 @@
+/* =====================================================
+   GLOBAL RESET
+   ===================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   BODY
+   ===================================================== */
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    color: #1f2937;
+    line-height: 1.6;
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+header {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+}
+
+header h1 {
+    margin-bottom: 10px;
+    font-size: 36px;
+}
+
+header p {
+    margin-bottom: 15px;
+    color: #6b7280;
+}
+
+
+/* =====================================================
+   CONNECTION BADGE
+   ===================================================== */
+
+#connection-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #e5e7eb;
+    color: #374151;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   MAIN CONTAINER
+   ===================================================== */
+
+main {
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+
+/* =====================================================
+   SECTIONS / CARDS
+   ===================================================== */
+
+main section {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+main section h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+
+/* =====================================================
+   TRANSFER GRID
+   ===================================================== */
+
+.transfer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+
+/* =====================================================
+   LABELS
+   ===================================================== */
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+
+/* =====================================================
+   FILE INPUT
+   ===================================================== */
+
+input[type="file"] {
+    display: block;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+
+/* =====================================================
+   TEXTAREA
+   ===================================================== */
+
+textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    resize: vertical;
+
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+textarea[readonly] {
+    background: #f9fafb;
+}
+
+
+/* =====================================================
+   BUTTONS
+   ===================================================== */
+
+button {
+    padding: 10px 16px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: white;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* =====================================================
+   SECONDARY BUTTON
+   ===================================================== */
+
+.secondary-button {
+    background: white;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+}
+
+.secondary-button:hover {
+    background: #eff6ff;
+    opacity: 1;
+}
+
+.secondary-button.copied {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+
+/* =====================================================
+   SIGNALING BLOCK
+   ===================================================== */
+
+.signal-block {
+    margin-bottom: 25px;
+}
+
+
+/* =====================================================
+   SIGNALING ACTIONS
+   ===================================================== */
+
+.signal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+
+/* =====================================================
+   CONNECTION STEPS
+   ===================================================== */
+
+.connection-steps {
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+.connection-steps li {
+    margin-bottom: 8px;
+}
+
+.connection-steps li::marker {
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   SELECTED FILES
+   ===================================================== */
+
+#selected-files {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+
+/* Empty state */
+
+#selected-files > p {
+    padding: 15px;
+
+    text-align: center;
+
+    color: #6b7280;
+
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+}
+
+
+/* Individual file */
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 12px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+
+/* File information */
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+
+/* File name */
+
+.file-info strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* File size */
+
+.file-info span {
+    color: #6b7280;
+    font-size: 13px;
+    margin-top: 3px;
+}
+
+
+/* Remove button */
+
+.remove-file {
+    background: transparent;
+    color: #6b7280;
+
+    border: 1px solid #d1d5db;
+
+    padding: 6px 10px;
+
+    font-size: 13px;
+
+    flex-shrink: 0;
+}
+
+.remove-file:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+    opacity: 1;
+}
+
+
+/* =====================================================
+   CONNECTION STATUS
+   ===================================================== */
+
+.connection-status {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px 16px;
+
+    border-radius: 8px;
+
+    background: #f3f4f6;
+
+    margin-bottom: 20px;
+}
+
+
+/* Status dot */
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+
+    background: #9ca3af;
+
+    flex-shrink: 0;
+}
+
+
+/* Connecting */
+
+.connection-status.connecting .status-indicator {
+    background: #f59e0b;
+}
+
+
+/* Connected */
+
+.connection-status.connected .status-indicator {
+    background: #10b981;
+}
+
+
+/* Failed */
+
+.connection-status.failed .status-indicator {
+    background: #ef4444;
+}
+
+
+/* =====================================================
+   TRANSFER PROGRESS
+   ===================================================== */
+
+.transfer-progress {
+    margin-top: 20px;
+}
+
+
+/* Progress header */
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 8px;
+}
+
+
+/* Progress element */
+
+progress {
+    width: 100%;
+    height: 12px;
+}
+
+
+/* Transfer statistics */
+
+.transfer-stats {
+    display: flex;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-top: 10px;
+
+    font-size: 14px;
+    color: #6b7280;
+}
+
+
+/* =====================================================
+   CONNECTION / TRANSFER LOG
+   ===================================================== */
+
+.connection-log {
+    margin-top: 20px;
+
+    padding: 15px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    background: #f9fafb;
+}
+
+.connection-log h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+
+.log-content {
+    max-height: 180px;
+
+    overflow-y: auto;
+
+    font-family: monospace;
+    font-size: 13px;
+}
+
+
+.log-content p {
+    margin-bottom: 6px;
+    color: #6b7280;
+}
+
+
+.log-content p.active {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+
+/* =====================================================
+   TROUBLESHOOTING
+   ===================================================== */
+
+.troubleshooting {
+    display: none;
+
+    margin-top: 20px;
+
+    padding: 15px;
+
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+
+    background: #fffbeb;
+}
+
+.troubleshooting.visible {
+    display: block;
+}
+
+.troubleshooting h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.troubleshooting ul {
+    padding-left: 20px;
+}
+
+.troubleshooting li {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   ERROR MESSAGE
+   ===================================================== */
+
+.error-message {
+    display: none;
+
+    margin-top: 15px;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    background: #fef2f2;
+    color: #b91c1c;
+
+    border: 1px solid #fecaca;
+}
+
+.error-message.visible {
+    display: block;
+}
+
+
+/* =====================================================
+   MOBILE RESPONSIVENESS
+   ===================================================== */
+
+@media (max-width: 768px) {
+
+    .transfer-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE SCREENS
+   ===================================================== */
+
+@media (max-width: 480px) {
+
+    header {
+        padding: 30px 15px;
+    }
+
+    header h1 {
+        font-size: 28px;
+    }
+
+    main {
+        padding: 20px 15px;
+    }
+
+    main section {
+        padding: 20px;
+    }
+
+    .signal-actions {
+        flex-direction: column;
+    }
+
+    .signal-actions button {
+        width: 100%;
+    }
+
+    .transfer-stats {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .file-item {
+        align-items: flex-start;
+    }
+
+    .remove-file {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+}
+
+#file-summary {
+    margin-top: 10px;
+    padding: 10px 12px;
+    color: #6b7280;
+    font-size: 14px;
+    text-align: right;
+}
