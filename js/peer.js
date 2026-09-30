@@ -42,6 +42,21 @@ peerConnection.addEventListener(
             peerConnection.connectionState
         );
 
+        console.log(
+            "Signaling state:",
+            peerConnection.signalingState
+        );
+
+        console.log(
+            "ICE connection state:",
+            peerConnection.iceConnectionState
+        );
+
+        console.log(
+            "ICE gathering state:",
+            peerConnection.iceGatheringState
+        );
+
     }
 );
 
@@ -56,6 +71,11 @@ peerConnection.addEventListener(
         console.log(
             "ICE state:",
             peerConnection.iceConnectionState
+        );
+
+        console.log(
+            "Signaling state:",
+            peerConnection.signalingState
         );
 
     }
@@ -101,6 +121,57 @@ console.log(
     dataChannel
 );
 
+// ========================================
+// RECEIVER DATA CHANNEL
+// ========================================
+
+peerConnection.addEventListener(
+    "datachannel",
+    function (event) {
+
+        console.log(
+            "Incoming data channel received:",
+            event.channel
+        );
+
+        const incomingChannel = event.channel;
+
+        incomingChannel.addEventListener(
+            "open",
+            function () {
+
+                console.log(
+                    "Incoming data channel is OPEN"
+                );
+
+            }
+        );
+
+        incomingChannel.addEventListener(
+            "close",
+            function () {
+
+                console.log(
+                    "Incoming data channel is CLOSED"
+                );
+
+            }
+        );
+
+        incomingChannel.addEventListener(
+            "message",
+            function (event) {
+
+                console.log(
+                    "Message received:",
+                    event.data
+                );
+
+            }
+        );
+
+    }
+);
 // ========================================
 // DATA CHANNEL OPEN
 // ========================================

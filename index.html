@@ -1,454 +1,270 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <meta
-        name="description"
-        content="Serverless peer-to-peer file transfer using WebRTC."
-    >
+      name="description"
+      content="Serverless peer-to-peer file transfer using WebRTC."
+    />
 
     <title>P2P File Drop</title>
 
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-<body>
-
+  <body>
     <!-- ================= HEADER ================= -->
 
     <header>
+      <h1>P2P File Drop</h1>
 
-        <h1>P2P File Drop</h1>
+      <p>Direct browser-to-browser file sharing</p>
 
-        <p>
-            Direct browser-to-browser file sharing
-        </p>
-
-        <span id="connection-badge">
-            Offline
-        </span>
-
+      <span id="connection-badge"> Offline </span>
     </header>
-
 
     <!-- ================= MAIN ================= -->
 
     <main>
+      <!-- ================= HOW IT WORKS ================= -->
 
-        <!-- ================= HOW IT WORKS ================= -->
+      <section id="how-it-works">
+        <h2>How It Works</h2>
 
-        <section id="how-it-works">
+        <ol class="connection-steps">
+          <li>Create an offer.</li>
 
-            <h2>How It Works</h2>
+          <li>Copy the offer code.</li>
 
-            <ol class="connection-steps">
+          <li>Send the offer code to the receiver.</li>
 
-                <li>Create an offer.</li>
+          <li>Receiver creates an answer.</li>
 
-                <li>Copy the offer code.</li>
+          <li>Exchange the answer code.</li>
 
-                <li>Send the offer code to the receiver.</li>
+          <li>Start the direct file transfer.</li>
+        </ol>
+      </section>
 
-                <li>Receiver creates an answer.</li>
+      <!-- ================= SEND + RECEIVE ================= -->
 
-                <li>Exchange the answer code.</li>
+      <div class="transfer-grid">
+        <!-- ================= SEND FILES ================= -->
 
-                <li>Start the direct file transfer.</li>
+        <section id="send-section">
+          <h2>Send Files</h2>
 
-            </ol>
+          <p>Select files and create an offer for the receiver.</p>
 
+          <!-- File Selection -->
+
+          <div class="file-selection">
+            <label for="file-input"> Select Files </label>
+
+            <input type="file" id="file-input" multiple />
+          </div>
+
+          <!-- Selected Files -->
+
+          <div id="selected-files">
+            <p>No files selected.</p>
+          </div>
+          <div id="file-summary"></div>
+
+          <!-- Connection Status -->
+
+          <div class="connection-status" role="status" aria-live="polite">
+            <span class="status-indicator"></span>
+
+            <span id="connection-status-text"> Disconnected </span>
+          </div>
+
+          <!-- Offer Code -->
+
+          <div class="signal-block">
+            <label for="offer-code"> Offer Code </label>
+
+            <textarea
+              id="offer-code"
+              readonly
+              placeholder="Your offer code will appear here..."
+            ></textarea>
+
+            <div class="signal-actions">
+              <button id="create-offer">Create Offer</button>
+
+              <button id="copy-offer" class="secondary-button">
+                Copy Offer
+              </button>
+            </div>
+          </div>
+
+          <!-- Answer From Receiver -->
+
+          <div class="signal-block">
+            <label for="received-answer"> Paste Answer Code </label>
+
+            <textarea
+              id="received-answer"
+              placeholder="Paste the receiver's answer code here..."
+            ></textarea>
+
+            <div class="signal-actions">
+              <button id="apply-answer">Connect</button>
+            </div>
+          </div>
+
+          <!-- Transfer Progress -->
+
+          <div class="transfer-progress">
+            <div class="progress-header">
+              <span> Sending Files </span>
+
+              <output id="progress-percent"> 0% </output>
+            </div>
+
+            <progress id="transfer-progress" value="0" max="100"></progress>
+
+            <div class="transfer-stats">
+              <output id="transfer-speed"> Speed: 0 MB/s </output>
+
+              <output id="transfer-eta"> ETA: -- </output>
+            </div>
+          </div>
+
+          <!-- Connection Log -->
+
+          <div class="connection-log">
+            <h3>Transfer Log</h3>
+
+            <div class="log-content" id="send-log">
+              <p class="active">Ready to connect.</p>
+            </div>
+          </div>
+
+          <!-- Troubleshooting -->
+
+          <div class="troubleshooting">
+            <h3>Troubleshooting</h3>
+
+            <ul>
+              <li>Make sure the complete offer or answer code was copied.</li>
+
+              <li>Keep both devices connected during setup.</li>
+
+              <li>Some networks may require STUN or TURN support.</li>
+            </ul>
+          </div>
+
+          <!-- Error -->
+
+          <div class="error-message" role="alert">
+            Connection failed. Please check the connection codes.
+          </div>
         </section>
 
+        <!-- ================= RECEIVE FILES ================= -->
 
-        <!-- ================= SEND + RECEIVE ================= -->
+        <section id="receive-section">
+          <h2>Receive Files</h2>
 
-        <div class="transfer-grid">
+          <p>Paste the sender's offer code and create an answer.</p>
 
+          <!-- Offer From Sender -->
 
-            <!-- ================= SEND FILES ================= -->
+          <div class="signal-block">
+            <label for="received-offer"> Paste Offer Code </label>
 
-            <section id="send-section">
+            <textarea
+              id="received-offer"
+              placeholder="Paste the offer code here..."
+            ></textarea>
 
-                <h2>Send Files</h2>
+            <div class="signal-actions">
+              <button id="create-answer">Create Answer</button>
 
-                <p>
-                    Select files and create an offer for the receiver.
-                </p>
+              <button id="copy-answer" class="secondary-button">
+                Copy Answer
+              </button>
+            </div>
+          </div>
 
+          <!-- Answer Code -->
 
-                <!-- File Selection -->
+          <div class="signal-block">
+            <label for="answer-code"> Answer Code </label>
 
-                <div class="file-selection">
+            <textarea
+              id="answer-code"
+              readonly
+              placeholder="Your answer code will appear here..."
+            ></textarea>
+          </div>
 
-                    <label for="file-input">
-                        Select Files
-                    </label>
+          <!-- Connection Status -->
 
-                    <input
-                        type="file"
-                        id="file-input"
-                        multiple
-                    >
+          <div class="connection-status" role="status" aria-live="polite">
+            <span class="status-indicator"></span>
 
-                </div>
+            <span id="receive-status-text"> Waiting for offer... </span>
+          </div>
 
+          <!-- Transfer Progress -->
 
-                <!-- Selected Files -->
+          <div class="transfer-progress">
+            <div class="progress-header">
+              <span> Receiving Files </span>
 
-                <div id="selected-files">
+              <output id="receive-progress-percent"> 0% </output>
+            </div>
 
-                    <p>
-                        No files selected.
-                    </p>
+            <progress id="receive-progress" value="0" max="100"></progress>
 
-                </div>
-                <div id="file-summary"></div>
+            <div class="transfer-stats">
+              <output id="receive-speed"> Speed: 0 MB/s </output>
 
-                <!-- Connection Status -->
+              <output id="receive-eta"> ETA: -- </output>
+            </div>
+          </div>
 
-                <div
-                    class="connection-status"
-                    role="status"
-                    aria-live="polite"
-                >
+          <!-- Connection Log -->
 
-                    <span class="status-indicator"></span>
+          <div class="connection-log">
+            <h3>Transfer Log</h3>
 
-                    <span id="connection-status-text">
-                        Disconnected
-                    </span>
+            <div class="log-content" id="receive-log">
+              <p>Waiting for offer...</p>
+            </div>
+          </div>
 
-                </div>
+          <!-- Troubleshooting -->
 
+          <div class="troubleshooting">
+            <h3>Troubleshooting</h3>
 
-                <!-- Offer Code -->
+            <ul>
+              <li>Make sure the complete offer code was pasted.</li>
 
-                <div class="signal-block">
+              <li>Keep the sender's page open.</li>
 
-                    <label for="offer-code">
-                        Offer Code
-                    </label>
+              <li>Some networks may require STUN or TURN support.</li>
+            </ul>
+          </div>
 
-                    <textarea
-                        id="offer-code"
-                        readonly
-                        placeholder="Your offer code will appear here..."
-                    ></textarea>
+          <!-- Error -->
 
-
-                    <div class="signal-actions">
-
-                        <button id="create-offer">
-                            Create Offer
-                        </button>
-
-                        <button
-                            id="copy-offer"
-                            class="secondary-button"
-                            disabled
-                        >
-                            Copy Offer
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Transfer Progress -->
-
-                <div class="transfer-progress">
-
-                    <div class="progress-header">
-
-                        <span>
-                            Sending Files
-                        </span>
-
-                        <output id="progress-percent">
-                            0%
-                        </output>
-
-                    </div>
-
-                    <progress
-                        id="transfer-progress"
-                        value="0"
-                        max="100"
-                    ></progress>
-
-
-                    <div class="transfer-stats">
-
-                        <output id="transfer-speed">
-                            Speed: 0 MB/s
-                        </output>
-
-                        <output id="transfer-eta">
-                            ETA: --
-                        </output>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Connection Log -->
-
-                <div class="connection-log">
-
-                    <h3>
-                        Transfer Log
-                    </h3>
-
-                    <div
-                        class="log-content"
-                        id="send-log"
-                    >
-
-                        <p class="active">
-                            Ready to connect.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Troubleshooting -->
-
-                <div class="troubleshooting">
-
-                    <h3>
-                        Troubleshooting
-                    </h3>
-
-                    <ul>
-
-                        <li>
-                            Make sure the complete offer or answer code
-                            was copied.
-                        </li>
-
-                        <li>
-                            Keep both devices connected during setup.
-                        </li>
-
-                        <li>
-                            Some networks may require STUN or TURN support.
-                        </li>
-
-                    </ul>
-
-                </div>
-
-
-                <!-- Error -->
-
-                <div
-                    class="error-message"
-                    role="alert"
-                >
-                    Connection failed.
-                    Please check the connection codes.
-                </div>
-
-            </section>
-
-
-            <!-- ================= RECEIVE FILES ================= -->
-
-            <section id="receive-section">
-
-                <h2>Receive Files</h2>
-
-                <p>
-                    Paste the sender's offer code and create an answer.
-                </p>
-
-
-                <!-- Offer From Sender -->
-
-                <div class="signal-block">
-
-                    <label for="received-offer">
-                        Paste Offer Code
-                    </label>
-
-                    <textarea
-                        id="received-offer"
-                        placeholder="Paste the offer code here..."
-                    ></textarea>
-
-
-                    <div class="signal-actions">
-
-                        <button id="create-answer">
-                            Create Answer
-                        </button>
-
-                        <button
-                            id="copy-answer"
-                            class="secondary-button"
-                            disabled
-                        >
-                            Copy Answer
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Answer Code -->
-
-                <div class="signal-block">
-
-                    <label for="answer-code">
-                        Answer Code
-                    </label>
-
-                    <textarea
-                        id="answer-code"
-                        readonly
-                        placeholder="Your answer code will appear here..."
-                    ></textarea>
-
-                </div>
-
-
-                <!-- Connection Status -->
-
-                <div
-                    class="connection-status"
-                    role="status"
-                    aria-live="polite"
-                >
-
-                    <span class="status-indicator"></span>
-
-                    <span id="receive-status-text">
-                        Waiting for offer...
-                    </span>
-
-                </div>
-
-
-                <!-- Transfer Progress -->
-
-                <div class="transfer-progress">
-
-                    <div class="progress-header">
-
-                        <span>
-                            Receiving Files
-                        </span>
-
-                        <output id="receive-progress-percent">
-                            0%
-                        </output>
-
-                    </div>
-
-                    <progress
-                        id="receive-progress"
-                        value="0"
-                        max="100"
-                    ></progress>
-
-
-                    <div class="transfer-stats">
-
-                        <output id="receive-speed">
-                            Speed: 0 MB/s
-                        </output>
-
-                        <output id="receive-eta">
-                            ETA: --
-                        </output>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Connection Log -->
-
-                <div class="connection-log">
-
-                    <h3>
-                        Transfer Log
-                    </h3>
-
-                    <div
-                        class="log-content"
-                        id="receive-log"
-                    >
-
-                        <p>
-                            Waiting for offer...
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Troubleshooting -->
-
-                <div class="troubleshooting">
-
-                    <h3>
-                        Troubleshooting
-                    </h3>
-
-                    <ul>
-
-                        <li>
-                            Make sure the complete offer code was pasted.
-                        </li>
-
-                        <li>
-                            Keep the sender's page open.
-                        </li>
-
-                        <li>
-                            Some networks may require STUN or TURN support.
-                        </li>
-
-                    </ul>
-
-                </div>
-
-
-                <!-- Error -->
-
-                <div
-                    class="error-message"
-                    role="alert"
-                >
-                    Connection failed.
-                    Please check the offer and answer codes.
-                </div>
-
-            </section>
-
-        </div>
-
+          <div class="error-message" role="alert">
+            Connection failed. Please check the offer and answer codes.
+          </div>
+        </section>
+      </div>
     </main>
-
 
     <!-- ================= JAVASCRIPT ================= -->
 
-    <script
-        type="module"
-        src="js/main.js"
-    ></script>
-
-</body>
-
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>
