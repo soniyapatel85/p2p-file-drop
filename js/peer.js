@@ -5,17 +5,23 @@
 
 console.log("peer.js loaded");
 
+
 // ========================================
 // WEBRTC CONFIGURATION
 // ========================================
 
 const rtcConfiguration = {
+
     iceServers: [
+
         {
             urls: "stun:stun.l.google.com:19302"
         }
+
     ]
+
 };
+
 
 // ========================================
 // CREATE PEER CONNECTION
@@ -24,212 +30,197 @@ const rtcConfiguration = {
 export const peerConnection =
     new RTCPeerConnection(rtcConfiguration);
 
-console.log(
-    "RTCPeerConnection created:",
-    peerConnection
-);
 
 // ========================================
-// CONNECTION STATE MONITOR
+// ACTIVE DATA CHANNEL
 // ========================================
 
-peerConnection.addEventListener(
-    "connectionstatechange",
-    function () {
+let activeDataChannel = null;
 
-        console.log(
-            "Connection state:",
-            peerConnection.connectionState
-        );
 
-        console.log(
-            "Signaling state:",
-            peerConnection.signalingState
-        );
+// ========================================
+// GET DATA CHANNEL
+// ========================================
 
-        console.log(
-            "ICE connection state:",
-            peerConnection.iceConnectionState
-        );
+export function getDataChannel() {
 
-        console.log(
-            "ICE gathering state:",
-            peerConnection.iceGatheringState
-        );
+    return activeDataChannel;
+
+}
+
+
+// ========================================
+// CREATE DATA CHANNEL
+// ========================================
+
+export function createDataChannel() {
+
+    if (activeDataChannel) {
+
+        console.log("Data channel already exists");
+
+        return activeDataChannel;
 
     }
-);
 
-// ========================================
-// ICE CONNECTION STATE MONITOR
-// ========================================
 
-peerConnection.addEventListener(
-    "iceconnectionstatechange",
-    function () {
+    console.log("Creating data channel...");
 
-        console.log(
-            "ICE state:",
-            peerConnection.iceConnectionState
+
+    activeDataChannel =
+        peerConnection.createDataChannel(
+            "file-transfer",
+            {
+                ordered: true
+            }
         );
 
-        console.log(
-            "Signaling state:",
-            peerConnection.signalingState
-        );
 
-    }
-);
+    setupDataChannel(activeDataChannel);
 
-// ========================================
-// ICE CANDIDATE MONITOR
-// ========================================
 
-peerConnection.addEventListener(
-    "icecandidate",
-    function (event) {
+    return activeDataChannel;
 
-        if (event.candidate) {
+}
 
-            console.log(
-                "New ICE candidate:",
-                event.candidate
-            );
-
-        } else {
-
-            console.log(
-                "ICE gathering completed"
-            );
-
-        }
-
-    }
-);
 
 // ========================================
-// DATA CHANNEL
+// SETUP DATA CHANNEL
 // ========================================
 
-export const dataChannel =
-    peerConnection.createDataChannel(
-        "file-transfer"
+function setupDataChannel(channel) {
+
+    console.log(
+        "Setting up DataChannel:",
+        channel.label
     );
 
-console.log(
-    "Data channel created:",
-    dataChannel
-);
 
-// ========================================
-// RECEIVER DATA CHANNEL
-// ========================================
+    channel.binaryType = "arraybuffer";
 
-peerConnection.addEventListener(
-    "datachannel",
-    function (event) {
 
-        console.log(
-            "Incoming data channel received:",
-            event.channel
+    channel.onopen = () => {
+
+        console.log("DataChannel OPEN");
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "p2p-datachannel-open"
+            )
         );
 
-        const incomingChannel = event.channel;
+    };
 
-        incomingChannel.addEventListener(
-            "open",
-            function () {
 
-                console.log(
-                    "Incoming data channel is OPEN"
-                );
+    channel.onclose = () => {
 
-            }
+        console.log("DataChannel CLOSED");
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "p2p-datachannel-close"
+            )
         );
 
-        incomingChannel.addEventListener(
-            "close",
-            function () {
+    };
 
-                console.log(
-                    "Incoming data channel is CLOSED"
-                );
 
-            }
-        );
-
-        incomingChannel.addEventListener(
-            "message",
-            function (event) {
-
-                console.log(
-                    "Message received:",
-                    event.data
-                );
-
-            }
-        );
-
-    }
-);
-// ========================================
-// DATA CHANNEL OPEN
-// ========================================
-
-dataChannel.addEventListener(
-    "open",
-    function () {
-
-        console.log(
-            "Data channel is OPEN"
-        );
-
-    }
-);
-
-// ========================================
-// DATA CHANNEL CLOSE
-// ========================================
-
-dataChannel.addEventListener(
-    "close",
-    function () {
-
-        console.log(
-            "Data channel is CLOSED"
-        );
-
-    }
-);
-
-// ========================================
-// DATA CHANNEL ERROR
-// ========================================
-
-dataChannel.addEventListener(
-    "error",
-    function (event) {
+    channel.onerror = (error) => {
 
         console.error(
-            "Data channel error:",
-            event
+            "DataChannel error:",
+            error
         );
 
-    }
-);
+        window.dispatchEvent(
+            new CustomEvent(
+                "p2p-datachannel-error",
+                {
+                    detail: error
+                }
+            )
+        );
+
+    };
+
+
+    channel.onmessage = (event) => {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "p2p-datachannel-message",
+                {
+                    detail: event.data
+                }
+            )
+        );
+
+    };
+
+}
+
 
 // ========================================
-// DATA CHANNEL MESSAGE
+// RECEIVE DATA CHANNEL
 // ========================================
 
-dataChannel.addEventListener(
-    "message",
-    function (event) {
+peerConnection.ondatachannel = (event) => {
+
+    console.log(
+        "Received DataChannel:",
+        event.channel.label
+    );
+
+
+    activeDataChannel =
+        event.channel;
+
+
+    setupDataChannel(activeDataChannel);
+
+};
+
+
+// ========================================
+// ICE STATE
+// ========================================
+
+peerConnection.oniceconnectionstatechange = () => {
+
+    console.log(
+        "ICE connection state:",
+        peerConnection.iceConnectionState
+    );
+
+};
+
+
+// ========================================
+// CONNECTION STATE
+// ========================================
+
+peerConnection.onconnectionstatechange = () => {
+
+    console.log(
+        "Connection state:",
+        peerConnection.connectionState
+    );
+
+};
+
+
+// ========================================
+// ICE CANDIDATE
+// ========================================
+
+peerConnection.onicecandidate = (event) => {
+
+    if (event.candidate) {
 
         console.log(
-            "Message received:",
-            event.data
+            "ICE candidate generated"
         );
 
     }
-);
+
+};

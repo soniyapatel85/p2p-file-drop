@@ -1,55 +1,29 @@
 // ========================================
-// P2P FILE DROP
-// MANUAL SIGNALLING
+// SIGNALING FUNCTIONS
 // ========================================
-
-console.log("signal.js loaded");
-
-// ========================================
-// CREATE OFFER CODE
-// ========================================
-
-export async function createOfferCode(peerConnection) {
-
-    console.log("Creating WebRTC offer...");
-
-    const offer =
-        await peerConnection.createOffer();
-
-    console.log("Offer created:", offer);
-
-    await peerConnection.setLocalDescription(offer);
-
-    console.log(
-        "Local description set. Waiting for ICE gathering..."
-    );
-
-    await waitForIceGatheringComplete(peerConnection);
-
-    const localDescription =
-        peerConnection.localDescription;
-
-    return JSON.stringify(localDescription);
-}
 
 
 // ========================================
 // WAIT FOR ICE GATHERING
 // ========================================
 
-function waitForIceGatheringComplete(peerConnection) {
+function waitForIceGathering(peerConnection) {
 
-    return new Promise(function (resolve) {
+    return new Promise((resolve) => {
 
         if (
             peerConnection.iceGatheringState ===
             "complete"
         ) {
+
             resolve();
+
             return;
+
         }
 
-        function checkIceState() {
+
+        const checkState = () => {
 
             if (
                 peerConnection.iceGatheringState ===
@@ -58,92 +32,186 @@ function waitForIceGatheringComplete(peerConnection) {
 
                 peerConnection.removeEventListener(
                     "icegatheringstatechange",
-                    checkIceState
+                    checkState
                 );
 
+
                 resolve();
+
             }
-        }
+
+        };
+
 
         peerConnection.addEventListener(
             "icegatheringstatechange",
-            checkIceState
+            checkState
         );
 
     });
+
 }
 
+
 // ========================================
-// CREATE ANSWER CODE
+// CREATE OFFER
+// ========================================
+
+export async function createOfferCode(
+    peerConnection
+) {
+
+    try {
+
+        console.log(
+            "Creating WebRTC offer..."
+        );
+
+
+        const offer =
+            await peerConnection.createOffer();
+
+
+        await peerConnection.setLocalDescription(
+            offer
+        );
+
+
+        await waitForIceGathering(
+            peerConnection
+        );
+
+
+        const localDescription =
+            peerConnection.localDescription;
+
+
+        return JSON.stringify(
+            localDescription
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error creating offer:",
+            error
+        );
+
+
+        throw error;
+
+    }
+
+}
+
+
+// ========================================
+// CREATE ANSWER
 // ========================================
 
 export async function createAnswerCode(
     peerConnection,
     receivedOffer
 ) {
-    console.log("Creating answer...");
 
-    // Convert received JSON string into object
-    const offer = JSON.parse(receivedOffer);
+    try {
 
-    console.log("Received offer:", offer);
+        console.log(
+            "Creating WebRTC answer..."
+        );
 
-    // Set sender's offer as remote description
-    await peerConnection.setRemoteDescription(offer);
 
-    console.log("Remote offer set.");
+        const offer =
+            JSON.parse(receivedOffer);
 
-    // Create answer
-    const answer =
-        await peerConnection.createAnswer();
 
-    console.log("Answer created:", answer);
+        await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(offer)
+        );
 
-    // Set answer as local description
-    await peerConnection.setLocalDescription(answer);
 
-    console.log(
-        "Local answer set. Waiting for ICE gathering..."
-    );
+        const answer =
+            await peerConnection.createAnswer();
 
-    // Wait until ICE gathering is complete
-    await waitForIceGatheringComplete(
-        peerConnection
-    );
 
-    // Get final local description
-    const localDescription =
-        peerConnection.localDescription;
+        await peerConnection.setLocalDescription(
+            answer
+        );
 
-    console.log(
-        "ICE gathering completed."
-    );
 
-    // Return answer as JSON string
-    return JSON.stringify(
-        localDescription
-    );
+        await waitForIceGathering(
+            peerConnection
+        );
+
+
+        const localDescription =
+            peerConnection.localDescription;
+
+
+        return JSON.stringify(
+            localDescription
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error creating answer:",
+            error
+        );
+
+
+        throw error;
+
+    }
+
 }
 
+
 // ========================================
-// SET ANSWER CODE
+// APPLY ANSWER
 // ========================================
 
 export async function setAnswerCode(
     peerConnection,
     receivedAnswer
 ) {
-    console.log("Setting received answer...");
 
-    // Convert JSON string into object
-    const answer = JSON.parse(receivedAnswer);
+    try {
 
-    console.log("Received answer:", answer);
+        console.log(
+            "Applying received answer..."
+        );
 
-    // Set receiver's answer as remote description
-    await peerConnection.setRemoteDescription(answer);
 
-    console.log(
-        "Remote answer set successfully."
-    );
+        const answer =
+            JSON.parse(receivedAnswer);
+
+
+        await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(answer)
+        );
+
+
+        console.log(
+            "Answer applied successfully"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error applying answer:",
+            error
+        );
+
+
+        throw error;
+
+    }
+
 }

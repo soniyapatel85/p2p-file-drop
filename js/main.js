@@ -1,36 +1,33 @@
 // ========================================
 // P2P FILE DROP
-// MAIN JAVASCRIPT
+// MAIN APPLICATION
 // ========================================
 
-import {
-    peerConnection,
-    dataChannel
-} from "./peer.js";
 
 import {
+
+    peerConnection,
+    createDataChannel
+
+} from "./peer.js";
+
+
+import {
+
     createOfferCode,
     createAnswerCode,
     setAnswerCode
+
 } from "./signal.js";
 
-// ========================================
-// 1. APPLICATION START
-// ========================================
 
-console.log(
-    "P2P File Drop application started"
-);
+import {
 
-console.log(
-    "Peer connection received in main.js:",
-    peerConnection
-);
+    sendText,
+    sendFile,
+    handleIncomingData
 
-console.log(
-    "Data channel received in main.js:",
-    dataChannel
-);
+} from "./file-transfer.js";
 
 
 // ========================================
@@ -41,117 +38,228 @@ let selectedFilesState = [];
 
 
 // ========================================
-// 2. DOM ELEMENTS
+// DOM ELEMENTS
 // ========================================
+
+
+// Connection
+
+const connectionStatus =
+    document.getElementById(
+        "connection-status"
+    );
+
+
+// Files
 
 const fileInput =
-    document.getElementById("file-input");
+    document.getElementById(
+        "file-input"
+    );
 
-const selectedFiles =
-    document.getElementById("selected-files");
+
+const selectedFilesContainer =
+    document.getElementById(
+        "selected-files"
+    );
+
+
+// Signaling
 
 const createOfferButton =
-    document.getElementById("create-offer");
+    document.getElementById(
+        "create-offer"
+    );
 
-const copyOfferButton =
-    document.getElementById("copy-offer");
-
-const createAnswerButton =
-    document.getElementById("create-answer");
-
-const copyAnswerButton =
-    document.getElementById("copy-answer");
 
 const offerCode =
-    document.getElementById("offer-code");
+    document.getElementById(
+        "offer-code"
+    );
 
-const receivedOffer =
-    document.getElementById("received-offer");
+
+const copyOfferButton =
+    document.getElementById(
+        "copy-offer"
+    );
+
 
 const answerCode =
-    document.getElementById("answer-code");
+    document.getElementById(
+        "answer-code"
+    );
 
-const fileSummary =
-    document.getElementById("file-summary");
-
-const receivedAnswer =
-    document.getElementById("received-answer");
 
 const applyAnswerButton =
-    document.getElementById("apply-answer");
+    document.getElementById(
+        "create-answer"
+    );
+
+
+const receivedOffer =
+    document.getElementById(
+        "received-offer"
+    );
+
+
+const createAnswerReceiverButton =
+    document.getElementById(
+        "create-answer-receiver"
+    );
+
+
+const receiverAnswerCode =
+    document.getElementById(
+        "receiver-answer-code"
+    );
+
+
+const copyAnswerButton =
+    document.getElementById(
+        "copy-answer"
+    );
+
+
+// Messages
+
+const messageInput =
+    document.getElementById(
+        "message-input"
+    );
+
+
+const sendMessageButton =
+    document.getElementById(
+        "send-message"
+    );
+
+
+const messagesContainer =
+    document.getElementById(
+        "messages"
+    );
+
+
+// File transfer
+
+const sendFilesButton =
+    document.getElementById(
+        "send-files"
+    );
+
+
+const transferStatus =
+    document.getElementById(
+        "transfer-status"
+    );
+
+
+const transferProgress =
+    document.getElementById(
+        "transfer-progress"
+    );
+
+
+const transferSpeed =
+    document.getElementById(
+        "transfer-speed"
+    );
+
+
+const transferEta =
+    document.getElementById(
+        "transfer-eta"
+    );
+
+
+const receivedFilesContainer =
+    document.getElementById(
+        "received-files"
+    );
+
+
+// Log
+
+const connectionLog =
+    document.getElementById(
+        "connection-log"
+    );
 
 
 // ========================================
-// 3. DOM CONNECTION TEST
+// LOG FUNCTION
 // ========================================
 
-console.log(
-    "File Input:",
-    fileInput
-);
+function addLog(message) {
 
-console.log(
-    "Selected Files Container:",
-    selectedFiles
-);
-
-console.log(
-    "Create Offer Button:",
-    createOfferButton
-);
-
-console.log(
-    "Copy Offer Button:",
-    copyOfferButton
-);
-
-console.log(
-    "Create Answer Button:",
-    createAnswerButton
-);
-
-console.log(
-    "Copy Answer Button:",
-    copyAnswerButton
-);
-
-console.log(
-    "Offer Code:",
-    offerCode
-);
-
-console.log(
-    "Received Offer:",
-    receivedOffer
-);
-
-console.log(
-    "Answer Code:",
-    answerCode
-);
-
-console.log(
-    "File Summary:",
-    fileSummary
-);
+    console.log(message);
 
 
-// ========================================
-// 4. FILE SIZE FORMATTER
-// ========================================
+    if (!connectionLog) {
 
-function formatFileSize(bytes) {
+        return;
 
-    if (bytes === 0) {
-        return "0 Bytes";
     }
 
+
+    const time =
+        new Date()
+            .toLocaleTimeString();
+
+
+    const paragraph =
+        document.createElement(
+            "p"
+        );
+
+
+    paragraph.textContent =
+        `[${time}] ${message}`;
+
+
+    connectionLog.appendChild(
+        paragraph
+    );
+
+
+    connectionLog.scrollTop =
+        connectionLog.scrollHeight;
+
+}
+
+
+// ========================================
+// FORMAT BYTES
+// ========================================
+
+function formatBytes(bytes) {
+
+    if (
+        bytes === 0
+    ) {
+
+        return "0 Bytes";
+
+    }
+
+
+    if (!bytes) {
+
+        return "0 Bytes";
+
+    }
+
+
     const units = [
+
         "Bytes",
         "KB",
         "MB",
-        "GB"
+        "GB",
+        "TB"
+
     ];
+
 
     const index =
         Math.floor(
@@ -159,422 +267,307 @@ function formatFileSize(bytes) {
             Math.log(1024)
         );
 
-    const size =
-        bytes /
-        Math.pow(1024, index);
 
-    return `${size.toFixed(2)} ${units[index]}`;
-}
-
-
-// ========================================
-// 5. CHECK DUPLICATE FILE
-// ========================================
-
-function isDuplicateFile(file) {
-
-    return selectedFilesState.some(
-        function (existingFile) {
-
-            return (
-                existingFile.name === file.name &&
-                existingFile.size === file.size &&
-                existingFile.lastModified ===
-                    file.lastModified
-            );
-
-        }
+    return (
+        `${(
+            bytes /
+            Math.pow(1024, index)
+        ).toFixed(2)} ${units[index]}`
     );
 
 }
 
 
 // ========================================
-// 6. CALCULATE TOTAL FILE SIZE
+// FORMAT TIME
 // ========================================
 
-function calculateTotalSize(files) {
+function formatTime(seconds) {
 
-    return files.reduce(
-        function (total, file) {
+    if (
+        !seconds ||
+        !Number.isFinite(seconds)
+    ) {
 
-            return total + file.size;
+        return "--";
 
-        },
-        0
-    );
-
-}
-
-
-// ========================================
-// 7. RENDER FILE SUMMARY
-// ========================================
-
-function renderFileSummary() {
-
-    if (selectedFilesState.length === 0) {
-
-        fileSummary.textContent = "";
-
-        return;
     }
 
-    const totalSize =
-        calculateTotalSize(
-            selectedFilesState
+
+    seconds =
+        Math.max(
+            0,
+            Math.round(seconds)
         );
 
-    const totalFiles =
-        selectedFilesState.length;
 
-    fileSummary.textContent =
-        `${totalFiles} file${totalFiles !== 1 ? "s" : ""} · ${formatFileSize(totalSize)}`;
+    const hours =
+        Math.floor(
+            seconds / 3600
+        );
+
+
+    const minutes =
+        Math.floor(
+            (seconds % 3600) / 60
+        );
+
+
+    const remainingSeconds =
+        seconds % 60;
+
+
+    if (hours > 0) {
+
+        return (
+            `${hours}h ` +
+            `${minutes}m ` +
+            `${remainingSeconds}s`
+        );
+
+    }
+
+
+    if (minutes > 0) {
+
+        return (
+            `${minutes}m ` +
+            `${remainingSeconds}s`
+        );
+
+    }
+
+
+    return `${remainingSeconds}s`;
 
 }
 
 
 // ========================================
-// 8. RENDER SELECTED FILES
+// CLIPBOARD
+// ========================================
+
+async function copyToClipboard(
+    text
+) {
+
+    if (!text) {
+
+        throw new Error(
+            "Nothing to copy."
+        );
+
+    }
+
+
+    await navigator.clipboard.writeText(
+        text
+    );
+
+}
+
+
+// ========================================
+// CONNECTION STATUS
+// ========================================
+
+function updateConnectionStatus(
+    message,
+    type = ""
+) {
+
+    if (!connectionStatus) {
+
+        return;
+
+    }
+
+
+    connectionStatus.textContent =
+        message;
+
+
+    connectionStatus.className =
+        "status-box";
+
+
+    if (type) {
+
+        connectionStatus.classList.add(
+            type
+        );
+
+    }
+
+}
+
+
+// ========================================
+// RENDER SELECTED FILES
 // ========================================
 
 function renderSelectedFiles() {
 
-    selectedFiles.innerHTML = "";
+    selectedFilesContainer.innerHTML =
+        "";
 
 
-    // ------------------------------------
-    // NO FILES
-    // ------------------------------------
+    if (
+        selectedFilesState.length === 0
+    ) {
 
-    if (selectedFilesState.length === 0) {
+        selectedFilesContainer.innerHTML =
+            "<p>No files selected.</p>";
 
-        const message =
-            document.createElement("p");
-
-        message.textContent =
-            "No files selected.";
-
-        selectedFiles.appendChild(
-            message
-        );
-
-        renderFileSummary();
 
         return;
+
     }
 
 
-    // ------------------------------------
-    // RENDER EVERY FILE
-    // ------------------------------------
+    const list =
+        document.createElement(
+            "div"
+        );
+
+
+    list.className =
+        "selected-file-list";
+
 
     selectedFilesState.forEach(
-        function (file, index) {
+        (file, index) => {
 
-            const fileItem =
-                document.createElement("div");
-
-            fileItem.className =
-                "file-item";
-
-
-            // --------------------------------
-            // FILE INFO
-            // --------------------------------
-
-            const fileInfo =
-                document.createElement("div");
-
-            fileInfo.className =
-                "file-info";
+            const item =
+                document.createElement(
+                    "div"
+                );
 
 
-            // --------------------------------
-            // FILE NAME
-            // --------------------------------
+            item.className =
+                "selected-file-item";
 
-            const fileName =
-                document.createElement("strong");
 
-            fileName.textContent =
+            const info =
+                document.createElement(
+                    "div"
+                );
+
+
+            info.className =
+                "selected-file-info";
+
+
+            const name =
+                document.createElement(
+                    "strong"
+                );
+
+
+            name.textContent =
                 file.name;
 
 
-            // --------------------------------
-            // FILE SIZE
-            // --------------------------------
-
-            const fileSize =
-                document.createElement("span");
-
-            fileSize.textContent =
-                formatFileSize(file.size);
+            const size =
+                document.createElement(
+                    "span"
+                );
 
 
-            // --------------------------------
-            // ADD FILE INFO
-            // --------------------------------
+            size.textContent =
+                formatBytes(
+                    file.size
+                );
 
-            fileInfo.appendChild(
-                fileName
-            );
 
-            fileInfo.appendChild(
-                fileSize
+            info.appendChild(
+                name
             );
 
 
-            // --------------------------------
-            // REMOVE BUTTON
-            // --------------------------------
+            info.appendChild(
+                size
+            );
+
 
             const removeButton =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
 
-            removeButton.className =
-                "remove-file";
+
+            removeButton.type =
+                "button";
+
 
             removeButton.textContent =
                 "Remove";
 
 
-            // Store file index
-            removeButton.dataset.index =
-                index;
+            removeButton.addEventListener(
+                "click",
+                () => {
+
+                    selectedFilesState
+                        .splice(
+                            index,
+                            1
+                        );
 
 
-            // --------------------------------
-            // ADD ELEMENTS
-            // --------------------------------
+                    renderSelectedFiles();
 
-            fileItem.appendChild(
-                fileInfo
+                }
             );
 
-            fileItem.appendChild(
+
+            item.appendChild(
+                info
+            );
+
+
+            item.appendChild(
                 removeButton
             );
 
-            selectedFiles.appendChild(
-                fileItem
+
+            list.appendChild(
+                item
             );
 
         }
     );
 
 
-    // ------------------------------------
-    // UPDATE SUMMARY
-    // ------------------------------------
-
-    renderFileSummary();
+    selectedFilesContainer.appendChild(
+        list
+    );
 
 }
 
 
 // ========================================
-// 9. REMOVE FILE
-// ========================================
-
-selectedFiles.addEventListener(
-    "click",
-    function (event) {
-
-        if (
-            !event.target.classList.contains(
-                "remove-file"
-            )
-        ) {
-
-            return;
-        }
-
-
-        const index =
-            Number(
-                event.target.dataset.index
-            );
-
-
-        // Remove selected file
-        selectedFilesState.splice(
-            index,
-            1
-        );
-
-
-        console.log(
-            "File removed:",
-            index
-        );
-
-
-        // Re-render
-        renderSelectedFiles();
-
-    }
-);
-
-
-// ========================================
-// 10. FILE SELECTION EVENT
+// FILE INPUT
 // ========================================
 
 fileInput.addEventListener(
     "change",
-    function () {
+    () => {
 
-        const newFiles =
+        selectedFilesState =
             Array.from(
                 fileInput.files
             );
 
 
-        console.log(
-            "New files selected:",
-            newFiles
-        );
-
-
-        // Add files
-        newFiles.forEach(
-            function (file) {
-
-                if (
-                    !isDuplicateFile(file)
-                ) {
-
-                    selectedFilesState.push(
-                        file
-                    );
-
-                } else {
-
-                    console.log(
-                        "Duplicate file skipped:",
-                        file.name
-                    );
-
-                }
-
-            }
-        );
-
-
-        console.log(
-            "Selected files:",
-            selectedFilesState
-        );
-
-
-        // Render
         renderSelectedFiles();
 
 
-        // Reset input
-        // This allows selecting the same
-        // file again after removing it.
-        fileInput.value = "";
-
-    }
-);
-
-
-// ========================================
-// 11. DATA CHANNEL STATE
-// ========================================
-
-dataChannel.addEventListener(
-    "open",
-    function () {
-
-        console.log(
-            "Main.js: Data channel is ready"
+        addLog(
+            `${selectedFilesState.length} file(s) selected.`
         );
 
     }
-);
-
-
-dataChannel.addEventListener(
-    "close",
-    function () {
-
-        console.log(
-            "Main.js: Data channel closed"
-        );
-
-    }
-);
-
-
-// ========================================
-// 12. PEER CONNECTION STATE
-// ========================================
-
-peerConnection.addEventListener(
-    "connectionstatechange",
-    function () {
-
-        console.log(
-            "Main.js connection state:",
-            peerConnection.connectionState
-        );
-
-
-        if (
-            peerConnection.connectionState ===
-            "connected"
-        ) {
-
-            console.log(
-                "🎉 Peer connected successfully!"
-            );
-
-        }
-
-
-        if (
-            peerConnection.connectionState ===
-            "disconnected"
-        ) {
-
-            console.log(
-                "Peer disconnected."
-            );
-
-        }
-
-
-        if (
-            peerConnection.connectionState ===
-            "failed"
-        ) {
-
-            console.log(
-                "Peer connection failed."
-            );
-
-        }
-
-    }
-);
-
-
-// ========================================
-// 13. INITIAL RENDER
-// ========================================
-
-renderSelectedFiles();
-
-
-// ========================================
-// APPLICATION READY
-// ========================================
-
-console.log(
-    "P2P File Drop is ready."
 );
 
 
@@ -584,28 +577,61 @@ console.log(
 
 createOfferButton.addEventListener(
     "click",
-    async function () {
+    async () => {
 
         try {
 
-            console.log("Create Offer clicked");
+            addLog(
+                "Creating offer..."
+            );
+
+
+            updateConnectionStatus(
+                "Creating offer..."
+            );
+
+
+            // Create DataChannel BEFORE offer
+
+            createDataChannel();
+
 
             const offer =
                 await createOfferCode(
                     peerConnection
                 );
 
-            offerCode.value = offer;
 
-            console.log(
-                "Offer code generated."
+            offerCode.value =
+                offer;
+
+
+            addLog(
+                "Offer created successfully."
             );
 
-        } catch (error) {
+
+            updateConnectionStatus(
+                "Offer created. Send it to receiver."
+            );
+
+        }
+
+        catch (error) {
 
             console.error(
-                "Failed to create offer:",
                 error
+            );
+
+
+            addLog(
+                `Offer error: ${error.message}`
+            );
+
+
+            updateConnectionStatus(
+                "Failed to create offer.",
+                "error"
             );
 
         }
@@ -613,56 +639,6 @@ createOfferButton.addEventListener(
     }
 );
 
-// ========================================
-// CREATE ANSWER
-// ========================================
-
-createAnswerButton.addEventListener(
-    "click",
-    async function () {
-
-        try {
-
-            console.log(
-                "Create Answer clicked"
-            );
-
-            const receivedOfferCode =
-                receivedOffer.value.trim();
-
-            // Check if offer is empty
-            if (!receivedOfferCode) {
-
-                console.log(
-                    "No offer received."
-                );
-
-                return;
-            }
-
-            const answer =
-                await createAnswerCode(
-                    peerConnection,
-                    receivedOfferCode
-                );
-
-            answerCode.value = answer;
-
-            console.log(
-                "Answer code generated."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Failed to create answer:",
-                error
-            );
-
-        }
-
-    }
-);
 
 // ========================================
 // COPY OFFER
@@ -670,72 +646,169 @@ createAnswerButton.addEventListener(
 
 copyOfferButton.addEventListener(
     "click",
-    async function () {
-
-        if (!offerCode.value) {
-            console.log("No offer code to copy.");
-            return;
-        }
+    async () => {
 
         try {
 
-            await navigator.clipboard.writeText(
+            await copyToClipboard(
                 offerCode.value
             );
 
-            copyOfferButton.textContent = "Copied!";
 
-            setTimeout(function () {
+            addLog(
+                "Offer copied to clipboard."
+            );
 
-                copyOfferButton.textContent =
-                    "Copy Offer";
 
-            }, 1500);
+            copyOfferButton.textContent =
+                "Copied!";
 
-        } catch (error) {
 
-            console.error(
-                "Failed to copy offer:",
-                error
+            setTimeout(
+                () => {
+
+                    copyOfferButton.textContent =
+                        "Copy Offer";
+
+                },
+                1500
+            );
+
+        }
+
+        catch (error) {
+
+            alert(
+                error.message
             );
 
         }
 
     }
 );
+
+
+// ========================================
+// CREATE ANSWER ON RECEIVER
+// ========================================
+
+createAnswerReceiverButton.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            const offer =
+                receivedOffer.value.trim();
+
+
+            if (!offer) {
+
+                alert(
+                    "Please paste the sender's offer first."
+                );
+
+
+                return;
+
+            }
+
+
+            addLog(
+                "Creating answer..."
+            );
+
+
+            updateConnectionStatus(
+                "Creating answer..."
+            );
+
+
+            const answer =
+                await createAnswerCode(
+                    peerConnection,
+                    offer
+                );
+
+
+            receiverAnswerCode.value =
+                answer;
+
+
+            addLog(
+                "Answer created successfully."
+            );
+
+
+            updateConnectionStatus(
+                "Answer created. Send it to sender."
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            addLog(
+                `Answer error: ${error.message}`
+            );
+
+
+            updateConnectionStatus(
+                "Failed to create answer.",
+                "error"
+            );
+
+        }
+
+    }
+);
+
+
 // ========================================
 // COPY ANSWER
 // ========================================
 
 copyAnswerButton.addEventListener(
     "click",
-    async function () {
-
-        if (!answerCode.value) {
-            console.log("No answer code to copy.");
-            return;
-        }
+    async () => {
 
         try {
 
-            await navigator.clipboard.writeText(
-                answerCode.value
+            await copyToClipboard(
+                receiverAnswerCode.value
             );
 
-            copyAnswerButton.textContent = "Copied!";
 
-            setTimeout(function () {
+            addLog(
+                "Answer copied to clipboard."
+            );
 
-                copyAnswerButton.textContent =
-                    "Copy Answer";
 
-            }, 1500);
+            copyAnswerButton.textContent =
+                "Copied!";
 
-        } catch (error) {
 
-            console.error(
-                "Failed to copy answer:",
-                error
+            setTimeout(
+                () => {
+
+                    copyAnswerButton.textContent =
+                        "Copy Answer";
+
+                },
+                1500
+            );
+
+        }
+
+        catch (error) {
+
+            alert(
+                error.message
             );
 
         }
@@ -743,45 +816,895 @@ copyAnswerButton.addEventListener(
     }
 );
 
+
 // ========================================
-// APPLY ANSWER / CONNECT
+// APPLY ANSWER ON SENDER
 // ========================================
 
 applyAnswerButton.addEventListener(
     "click",
-    async function () {
+    async () => {
 
         try {
 
-            console.log("Connect button clicked.");
+            const answer =
+                answerCode.value.trim();
 
-            const receivedAnswerCode =
-                receivedAnswer.value.trim();
 
-            if (!receivedAnswerCode) {
-                console.log(
-                    "Please paste the answer code first."
+            if (!answer) {
+
+                alert(
+                    "Please paste the receiver's answer first."
                 );
+
+
                 return;
+
             }
+
+
+            addLog(
+                "Applying receiver answer..."
+            );
+
+
+            updateConnectionStatus(
+                "Connecting..."
+            );
+
 
             await setAnswerCode(
                 peerConnection,
-                receivedAnswerCode
+                answer
             );
 
-            console.log(
-                "Answer applied successfully."
+
+            addLog(
+                "Receiver answer applied successfully."
             );
 
-        } catch (error) {
+
+            updateConnectionStatus(
+                "Answer applied. Waiting for connection..."
+            );
+
+        }
+
+        catch (error) {
 
             console.error(
-                "Failed to apply answer:",
                 error
+            );
+
+
+            addLog(
+                `Apply answer error: ${error.message}`
+            );
+
+
+            updateConnectionStatus(
+                "Failed to apply answer.",
+                "error"
             );
 
         }
 
     }
+);
+
+
+// ========================================
+// PEER CONNECTION STATE
+// ========================================
+
+peerConnection.addEventListener(
+    "connectionstatechange",
+    () => {
+
+        const state =
+            peerConnection.connectionState;
+
+
+        addLog(
+            `Peer connection state: ${state}`
+        );
+
+
+        switch (state) {
+
+            case "new":
+
+                updateConnectionStatus(
+                    "Connection starting..."
+                );
+
+                break;
+
+
+            case "connecting":
+
+                updateConnectionStatus(
+                    "Connecting..."
+                );
+
+                break;
+
+
+            case "connected":
+
+                updateConnectionStatus(
+                    "Connected ✓",
+                    "connected"
+                );
+
+                break;
+
+
+            case "disconnected":
+
+                updateConnectionStatus(
+                    "Disconnected",
+                    "warning"
+                );
+
+                break;
+
+
+            case "failed":
+
+                updateConnectionStatus(
+                    "Connection failed",
+                    "error"
+                );
+
+                break;
+
+
+            case "closed":
+
+                updateConnectionStatus(
+                    "Connection closed",
+                    "warning"
+                );
+
+                break;
+
+        }
+
+    }
+);
+
+
+// ========================================
+// DATA CHANNEL OPEN
+// ========================================
+
+window.addEventListener(
+    "p2p-datachannel-open",
+    () => {
+
+        addLog(
+            "DataChannel opened successfully."
+        );
+
+
+        updateConnectionStatus(
+            "Connected ✓",
+            "connected"
+        );
+
+
+        transferStatus.textContent =
+            "Ready for file transfer.";
+
+
+        addLog(
+            "You can now send messages and files."
+        );
+
+    }
+);
+
+
+// ========================================
+// DATA CHANNEL CLOSE
+// ========================================
+
+window.addEventListener(
+    "p2p-datachannel-close",
+    () => {
+
+        addLog(
+            "DataChannel closed."
+        );
+
+
+        updateConnectionStatus(
+            "Connection closed",
+            "warning"
+        );
+
+
+        transferStatus.textContent =
+            "Connection closed.";
+
+    }
+);
+
+
+// ========================================
+// DATA CHANNEL ERROR
+// ========================================
+
+window.addEventListener(
+    "p2p-datachannel-error",
+    (event) => {
+
+        console.error(
+            event.detail
+        );
+
+
+        addLog(
+            "DataChannel error occurred."
+        );
+
+    }
+);
+
+
+// ========================================
+// INCOMING DATA
+// ========================================
+
+window.addEventListener(
+    "p2p-datachannel-message",
+    async (event) => {
+
+        await handleIncomingData(
+            event.detail
+        );
+
+    }
+);
+
+
+// ========================================
+// SEND TEXT MESSAGE
+// ========================================
+
+function sendCurrentMessage() {
+
+    const text =
+        messageInput.value.trim();
+
+
+    if (!text) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const success =
+            sendText(text);
+
+
+        if (!success) {
+
+            return;
+
+        }
+
+
+        addMessage(
+            text,
+            "You"
+        );
+
+
+        messageInput.value =
+            "";
+
+
+        addLog(
+            "Message sent."
+        );
+
+    }
+
+    catch (error) {
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+// ========================================
+// SEND MESSAGE BUTTON
+// ========================================
+
+sendMessageButton.addEventListener(
+    "click",
+    sendCurrentMessage
+);
+
+
+// ========================================
+// ENTER TO SEND
+// ========================================
+
+messageInput.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
+
+            event.preventDefault();
+
+            sendCurrentMessage();
+
+        }
+
+    }
+);
+
+
+// ========================================
+// ADD MESSAGE TO UI
+// ========================================
+
+function addMessage(
+    text,
+    sender
+) {
+
+    const noMessages =
+        messagesContainer.querySelector(
+            "p"
+        );
+
+
+    if (
+        noMessages &&
+        noMessages.textContent ===
+        "No messages yet."
+    ) {
+
+        noMessages.remove();
+
+    }
+
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        "message-item";
+
+
+    const senderElement =
+        document.createElement(
+            "strong"
+        );
+
+
+    senderElement.textContent =
+        `${sender}: `;
+
+
+    const textElement =
+        document.createElement(
+            "span"
+        );
+
+
+    textElement.textContent =
+        text;
+
+
+    message.appendChild(
+        senderElement
+    );
+
+
+    message.appendChild(
+        textElement
+    );
+
+
+    messagesContainer.appendChild(
+        message
+    );
+
+
+    messagesContainer.scrollTop =
+        messagesContainer.scrollHeight;
+
+}
+
+
+// ========================================
+// RECEIVE TEXT MESSAGE
+// ========================================
+
+window.addEventListener(
+    "p2p-text-message",
+    (event) => {
+
+        const text =
+            event.detail;
+
+
+        addMessage(
+            text,
+            "Peer"
+        );
+
+
+        addLog(
+            "Message received."
+        );
+
+    }
+);
+
+
+// ========================================
+// SEND SELECTED FILES
+// ========================================
+
+sendFilesButton.addEventListener(
+    "click",
+    async () => {
+
+        if (
+            selectedFilesState.length ===
+            0
+        ) {
+
+            alert(
+                "Please select at least one file."
+            );
+
+
+            return;
+
+        }
+
+
+        try {
+
+            sendFilesButton.disabled =
+                true;
+
+
+            for (
+                const file of
+                selectedFilesState
+            ) {
+
+                transferStatus.textContent =
+                    `Sending ${file.name}...`;
+
+
+                await sendFile(
+                    file
+                );
+
+
+                addLog(
+                    `File sent: ${file.name}`
+                );
+
+            }
+
+
+            transferStatus.textContent =
+                "All selected files sent successfully.";
+
+
+            transferProgress.value =
+                100;
+
+
+            transferSpeed.textContent =
+                "Speed: --";
+
+
+            transferEta.textContent =
+                "ETA: --";
+
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            transferStatus.textContent =
+                `Transfer failed: ${error.message}`;
+
+
+            addLog(
+                `File transfer error: ${error.message}`
+            );
+
+        }
+
+        finally {
+
+            sendFilesButton.disabled =
+                false;
+
+        }
+
+    }
+);
+
+
+// ========================================
+// FILE SEND START
+// ========================================
+
+window.addEventListener(
+    "file-send-start",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferStatus.textContent =
+            `Sending: ${data.fileName}`;
+
+
+        transferProgress.value =
+            0;
+
+
+        transferSpeed.textContent =
+            "Speed: calculating...";
+
+
+        transferEta.textContent =
+            "ETA: calculating...";
+
+
+        addLog(
+            `Starting file transfer: ${data.fileName}`
+        );
+
+    }
+);
+
+
+// ========================================
+// FILE SEND PROGRESS
+// ========================================
+
+window.addEventListener(
+    "file-send-progress",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferProgress.value =
+            data.progress;
+
+
+        transferStatus.textContent =
+            `Sending ${data.fileName} - ` +
+            `${data.progress.toFixed(1)}%`;
+
+
+        transferSpeed.textContent =
+            `Speed: ${formatBytes(data.speed)}/s`;
+
+
+        transferEta.textContent =
+            `ETA: ${formatTime(data.eta)}`;
+
+    }
+);
+
+
+// ========================================
+// FILE SEND COMPLETE
+// ========================================
+
+window.addEventListener(
+    "file-send-complete",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferProgress.value =
+            100;
+
+
+        transferStatus.textContent =
+            `Sent: ${data.fileName}`;
+
+
+        transferSpeed.textContent =
+            "Speed: Complete";
+
+
+        transferEta.textContent =
+            "ETA: 0s";
+
+
+        addLog(
+            `File transfer completed: ${data.fileName}`
+        );
+
+    }
+);
+
+
+// ========================================
+// FILE RECEIVE START
+// ========================================
+
+window.addEventListener(
+    "file-receive-start",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferStatus.textContent =
+            `Receiving: ${data.fileName}`;
+
+
+        transferProgress.value =
+            0;
+
+
+        transferSpeed.textContent =
+            "Speed: calculating...";
+
+
+        transferEta.textContent =
+            "ETA: calculating...";
+
+
+        addLog(
+            `Receiving file: ${data.fileName}`
+        );
+
+    }
+);
+
+
+// ========================================
+// FILE RECEIVE PROGRESS
+// ========================================
+
+window.addEventListener(
+    "file-receive-progress",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferProgress.value =
+            data.progress;
+
+
+        transferStatus.textContent =
+            `Receiving ${data.fileName} - ` +
+            `${data.progress.toFixed(1)}%`;
+
+
+        transferSpeed.textContent =
+            `Speed: ${formatBytes(data.speed)}/s`;
+
+
+        transferEta.textContent =
+            `ETA: ${formatTime(data.eta)}`;
+
+    }
+);
+
+
+// ========================================
+// FILE RECEIVE COMPLETE
+// ========================================
+
+window.addEventListener(
+    "file-receive-complete",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferProgress.value =
+            100;
+
+
+        transferStatus.textContent =
+            `Received: ${data.fileName}`;
+
+
+        transferSpeed.textContent =
+            "Speed: Complete";
+
+
+        transferEta.textContent =
+            "ETA: 0s";
+
+
+        addReceivedFile(
+            data
+        );
+
+
+        addLog(
+            `File received: ${data.fileName}`
+        );
+
+    }
+);
+
+
+// ========================================
+// ADD RECEIVED FILE
+// ========================================
+
+function addReceivedFile(
+    data
+) {
+
+    const noFiles =
+        receivedFilesContainer.querySelector(
+            "p"
+        );
+
+
+    if (
+        noFiles &&
+        noFiles.textContent ===
+        "No files received yet."
+    ) {
+
+        noFiles.remove();
+
+    }
+
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+
+    wrapper.className =
+        "received-file-item";
+
+
+    const name =
+        document.createElement(
+            "strong"
+        );
+
+
+    name.textContent =
+        data.fileName;
+
+
+    const size =
+        document.createElement(
+            "span"
+        );
+
+
+    size.textContent =
+        formatBytes(
+            data.fileSize
+        );
+
+
+    const download =
+        document.createElement(
+            "a"
+        );
+
+
+    download.href =
+        data.downloadUrl;
+
+
+    download.download =
+        data.fileName;
+
+
+    download.textContent =
+        "Download";
+
+
+    download.className =
+        "download-link";
+
+
+    wrapper.appendChild(
+        name
+    );
+
+
+    wrapper.appendChild(
+        size
+    );
+
+
+    wrapper.appendChild(
+        download
+    );
+
+
+    receivedFilesContainer.appendChild(
+        wrapper
+    );
+
+}
+
+
+// ========================================
+// TRANSFER ERROR
+// ========================================
+
+window.addEventListener(
+    "p2p-transfer-error",
+    (event) => {
+
+        const message =
+            event.detail ||
+            "Unknown transfer error";
+
+
+        transferStatus.textContent =
+            `Error: ${message}`;
+
+
+        addLog(
+            `Transfer error: ${message}`
+        );
+
+    }
+);
+
+
+// ========================================
+// INITIAL LOG
+// ========================================
+
+addLog(
+    "P2P File Drop loaded."
+);
+
+
+addLog(
+    "Waiting for WebRTC connection..."
 );
