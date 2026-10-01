@@ -5,7 +5,8 @@
 
 import {
     peerConnection,
-    dataChannel
+    getDataChannel,
+    initDataChannel
 } from "./peer.js";
 
 import {
@@ -18,20 +19,7 @@ import {
 // 1. APPLICATION START
 // ========================================
 
-console.log(
-    "P2P File Drop application started"
-);
-
-console.log(
-    "Peer connection received in main.js:",
-    peerConnection
-);
-
-console.log(
-    "Data channel received in main.js:",
-    dataChannel
-);
-
+console.log("P2P File Drop application started");
 
 // ========================================
 // APPLICATION STATE
@@ -39,749 +27,280 @@ console.log(
 
 let selectedFilesState = [];
 
-
 // ========================================
 // 2. DOM ELEMENTS
 // ========================================
 
-const fileInput =
-    document.getElementById("file-input");
+const fileInput = document.getElementById("file-input");
+const selectedFiles = document.getElementById("selected-files");
+const createOfferButton = document.getElementById("create-offer");
+const copyOfferButton = document.getElementById("copy-offer");
+const createAnswerButton = document.getElementById("create-answer");
+const copyAnswerButton = document.getElementById("copy-answer");
+const offerCode = document.getElementById("offer-code");
+const receivedOffer = document.getElementById("received-offer");
+const answerCode = document.getElementById("answer-code");
+const fileSummary = document.getElementById("file-summary");
+const receivedAnswer = document.getElementById("received-answer");
+const applyAnswerButton = document.getElementById("apply-answer");
 
-const selectedFiles =
-    document.getElementById("selected-files");
-
-const createOfferButton =
-    document.getElementById("create-offer");
-
-const copyOfferButton =
-    document.getElementById("copy-offer");
-
-const createAnswerButton =
-    document.getElementById("create-answer");
-
-const copyAnswerButton =
-    document.getElementById("copy-answer");
-
-const offerCode =
-    document.getElementById("offer-code");
-
-const receivedOffer =
-    document.getElementById("received-offer");
-
-const answerCode =
-    document.getElementById("answer-code");
-
-const fileSummary =
-    document.getElementById("file-summary");
-
-const receivedAnswer =
-    document.getElementById("received-answer");
-
-const applyAnswerButton =
-    document.getElementById("apply-answer");
-
+// --- PHASE 4 DOM ELEMENTS ---
+const messageInput = document.getElementById("message-input");
+const sendMessageButton = document.getElementById("send-message");
+const messagesContainer = document.getElementById("messages");
 
 // ========================================
-// 3. DOM CONNECTION TEST
-// ========================================
-
-console.log(
-    "File Input:",
-    fileInput
-);
-
-console.log(
-    "Selected Files Container:",
-    selectedFiles
-);
-
-console.log(
-    "Create Offer Button:",
-    createOfferButton
-);
-
-console.log(
-    "Copy Offer Button:",
-    copyOfferButton
-);
-
-console.log(
-    "Create Answer Button:",
-    createAnswerButton
-);
-
-console.log(
-    "Copy Answer Button:",
-    copyAnswerButton
-);
-
-console.log(
-    "Offer Code:",
-    offerCode
-);
-
-console.log(
-    "Received Offer:",
-    receivedOffer
-);
-
-console.log(
-    "Answer Code:",
-    answerCode
-);
-
-console.log(
-    "File Summary:",
-    fileSummary
-);
-
-
-// ========================================
-// 4. FILE SIZE FORMATTER
+// 3. FILE SIZE FORMATTER
 // ========================================
 
 function formatFileSize(bytes) {
-
-    if (bytes === 0) {
-        return "0 Bytes";
-    }
-
-    const units = [
-        "Bytes",
-        "KB",
-        "MB",
-        "GB"
-    ];
-
-    const index =
-        Math.floor(
-            Math.log(bytes) /
-            Math.log(1024)
-        );
-
-    const size =
-        bytes /
-        Math.pow(1024, index);
-
+    if (bytes === 0) return "0 Bytes";
+    const units = ["Bytes", "KB", "MB", "GB"];
+    const index = Math.floor(Math.log(bytes) / Math.log(1024));
+    const size = bytes / Math.pow(1024, index);
     return `${size.toFixed(2)} ${units[index]}`;
 }
 
-
 // ========================================
-// 5. CHECK DUPLICATE FILE
+// 4. CHECK DUPLICATE FILE
 // ========================================
 
 function isDuplicateFile(file) {
-
-    return selectedFilesState.some(
-        function (existingFile) {
-
-            return (
-                existingFile.name === file.name &&
-                existingFile.size === file.size &&
-                existingFile.lastModified ===
-                    file.lastModified
-            );
-
-        }
-    );
-
+    return selectedFilesState.some(function (existingFile) {
+        return (
+            existingFile.name === file.name &&
+            existingFile.size === file.size &&
+            existingFile.lastModified === file.lastModified
+        );
+    });
 }
 
-
 // ========================================
-// 6. CALCULATE TOTAL FILE SIZE
+// 5. CALCULATE TOTAL FILE SIZE
 // ========================================
 
 function calculateTotalSize(files) {
-
-    return files.reduce(
-        function (total, file) {
-
-            return total + file.size;
-
-        },
-        0
-    );
-
+    return files.reduce(function (total, file) {
+        return total + file.size;
+    }, 0);
 }
 
-
 // ========================================
-// 7. RENDER FILE SUMMARY
+// 6. RENDER FILE SUMMARY
 // ========================================
 
 function renderFileSummary() {
-
+    if (!fileSummary) return;
     if (selectedFilesState.length === 0) {
-
         fileSummary.textContent = "";
-
         return;
     }
-
-    const totalSize =
-        calculateTotalSize(
-            selectedFilesState
-        );
-
-    const totalFiles =
-        selectedFilesState.length;
-
-    fileSummary.textContent =
-        `${totalFiles} file${totalFiles !== 1 ? "s" : ""} · ${formatFileSize(totalSize)}`;
-
+    const totalSize = calculateTotalSize(selectedFilesState);
+    const totalFiles = selectedFilesState.length;
+    fileSummary.textContent = `${totalFiles} file${totalFiles !== 1 ? "s" : ""} · ${formatFileSize(totalSize)}`;
 }
 
-
 // ========================================
-// 8. RENDER SELECTED FILES
+// 7. RENDER SELECTED FILES
 // ========================================
 
 function renderSelectedFiles() {
-
+    if (!selectedFiles) return;
     selectedFiles.innerHTML = "";
 
-
-    // ------------------------------------
-    // NO FILES
-    // ------------------------------------
-
     if (selectedFilesState.length === 0) {
-
-        const message =
-            document.createElement("p");
-
-        message.textContent =
-            "No files selected.";
-
-        selectedFiles.appendChild(
-            message
-        );
-
+        const message = document.createElement("p");
+        message.textContent = "No files selected.";
+        selectedFiles.appendChild(message);
         renderFileSummary();
-
         return;
     }
 
+    selectedFilesState.forEach(function (file, index) {
+        const fileItem = document.createElement("div");
+        fileItem.className = "file-item";
 
-    // ------------------------------------
-    // RENDER EVERY FILE
-    // ------------------------------------
+        const fileInfo = document.createElement("div");
+        fileInfo.className = "file-info";
 
-    selectedFilesState.forEach(
-        function (file, index) {
+        const fileName = document.createElement("strong");
+        fileName.textContent = file.name;
 
-            const fileItem =
-                document.createElement("div");
+        const fileSize = document.createElement("span");
+        fileSize.textContent = formatFileSize(file.size);
 
-            fileItem.className =
-                "file-item";
+        fileInfo.appendChild(fileName);
+        fileInfo.appendChild(fileSize);
 
+        const removeButton = document.createElement("button");
+        removeButton.className = "remove-file";
+        removeButton.textContent = "Remove";
+        removeButton.dataset.index = index;
 
-            // --------------------------------
-            // FILE INFO
-            // --------------------------------
-
-            const fileInfo =
-                document.createElement("div");
-
-            fileInfo.className =
-                "file-info";
-
-
-            // --------------------------------
-            // FILE NAME
-            // --------------------------------
-
-            const fileName =
-                document.createElement("strong");
-
-            fileName.textContent =
-                file.name;
-
-
-            // --------------------------------
-            // FILE SIZE
-            // --------------------------------
-
-            const fileSize =
-                document.createElement("span");
-
-            fileSize.textContent =
-                formatFileSize(file.size);
-
-
-            // --------------------------------
-            // ADD FILE INFO
-            // --------------------------------
-
-            fileInfo.appendChild(
-                fileName
-            );
-
-            fileInfo.appendChild(
-                fileSize
-            );
-
-
-            // --------------------------------
-            // REMOVE BUTTON
-            // --------------------------------
-
-            const removeButton =
-                document.createElement("button");
-
-            removeButton.className =
-                "remove-file";
-
-            removeButton.textContent =
-                "Remove";
-
-
-            // Store file index
-            removeButton.dataset.index =
-                index;
-
-
-            // --------------------------------
-            // ADD ELEMENTS
-            // --------------------------------
-
-            fileItem.appendChild(
-                fileInfo
-            );
-
-            fileItem.appendChild(
-                removeButton
-            );
-
-            selectedFiles.appendChild(
-                fileItem
-            );
-
-        }
-    );
-
-
-    // ------------------------------------
-    // UPDATE SUMMARY
-    // ------------------------------------
+        fileItem.appendChild(fileInfo);
+        fileItem.appendChild(removeButton);
+        selectedFiles.appendChild(fileItem);
+    });
 
     renderFileSummary();
-
 }
 
-
 // ========================================
-// 9. REMOVE FILE
+// 8. REMOVE FILE EVENT
 // ========================================
 
-selectedFiles.addEventListener(
-    "click",
-    function (event) {
-
-        if (
-            !event.target.classList.contains(
-                "remove-file"
-            )
-        ) {
-
-            return;
-        }
-
-
-        const index =
-            Number(
-                event.target.dataset.index
-            );
-
-
-        // Remove selected file
-        selectedFilesState.splice(
-            index,
-            1
-        );
-
-
-        console.log(
-            "File removed:",
-            index
-        );
-
-
-        // Re-render
+if (selectedFiles) {
+    selectedFiles.addEventListener("click", function (event) {
+        if (!event.target.classList.contains("remove-file")) return;
+        const index = Number(event.target.dataset.index);
+        selectedFilesState.splice(index, 1);
+        console.log("File removed index:", index);
         renderSelectedFiles();
-
-    }
-);
-
+    });
+}
 
 // ========================================
-// 10. FILE SELECTION EVENT
+// 9. FILE SELECTION EVENT
 // ========================================
 
-fileInput.addEventListener(
-    "change",
-    function () {
+if (fileInput) {
+    fileInput.addEventListener("change", function () {
+        const newFiles = Array.from(fileInput.files);
+        console.log("New files selected:", newFiles);
 
-        const newFiles =
-            Array.from(
-                fileInput.files
-            );
-
-
-        console.log(
-            "New files selected:",
-            newFiles
-        );
-
-
-        // Add files
-        newFiles.forEach(
-            function (file) {
-
-                if (
-                    !isDuplicateFile(file)
-                ) {
-
-                    selectedFilesState.push(
-                        file
-                    );
-
-                } else {
-
-                    console.log(
-                        "Duplicate file skipped:",
-                        file.name
-                    );
-
-                }
-
+        newFiles.forEach(function (file) {
+            if (!isDuplicateFile(file)) {
+                selectedFilesState.push(file);
             }
-        );
+        });
 
-
-        console.log(
-            "Selected files:",
-            selectedFilesState
-        );
-
-
-        // Render
         renderSelectedFiles();
-
-
-        // Reset input
-        // This allows selecting the same
-        // file again after removing it.
-        fileInput.value = "";
-
-    }
-);
-
+    });
+}
 
 // ========================================
-// 11. DATA CHANNEL STATE
+// 10. WEBRTC SIGNALING HANDLERS
 // ========================================
 
-dataChannel.addEventListener(
-    "open",
-    function () {
-
-        console.log(
-            "Main.js: Data channel is ready"
-        );
-
-    }
-);
-
-
-dataChannel.addEventListener(
-    "close",
-    function () {
-
-        console.log(
-            "Main.js: Data channel closed"
-        );
-
-    }
-);
-
-
-// ========================================
-// 12. PEER CONNECTION STATE
-// ========================================
-
-peerConnection.addEventListener(
-    "connectionstatechange",
-    function () {
-
-        console.log(
-            "Main.js connection state:",
-            peerConnection.connectionState
-        );
-
-
-        if (
-            peerConnection.connectionState ===
-            "connected"
-        ) {
-
-            console.log(
-                "🎉 Peer connected successfully!"
-            );
-
-        }
-
-
-        if (
-            peerConnection.connectionState ===
-            "disconnected"
-        ) {
-
-            console.log(
-                "Peer disconnected."
-            );
-
-        }
-
-
-        if (
-            peerConnection.connectionState ===
-            "failed"
-        ) {
-
-            console.log(
-                "Peer connection failed."
-            );
-
-        }
-
-    }
-);
-
-
-// ========================================
-// 13. INITIAL RENDER
-// ========================================
-
-renderSelectedFiles();
-
-
-// ========================================
-// APPLICATION READY
-// ========================================
-
-console.log(
-    "P2P File Drop is ready."
-);
-
-
-// ========================================
-// CREATE OFFER
-// ========================================
-
-createOfferButton.addEventListener(
-    "click",
-    async function () {
-
+if (createOfferButton) {
+    createOfferButton.addEventListener("click", async function () {
         try {
-
-            console.log("Create Offer clicked");
-
-            const offer =
-                await createOfferCode(
-                    peerConnection
-                );
-
-            offerCode.value = offer;
-
-            console.log(
-                "Offer code generated."
-            );
-
+            // Sender side: offer banane se pehle data channel create karo
+            initDataChannel();
+            const code = await createOfferCode();
+            if (offerCode) offerCode.value = code;
+            console.log("Offer code generated successfully.");
         } catch (error) {
-
-            console.error(
-                "Failed to create offer:",
-                error
-            );
-
+            console.error("Failed to create offer:", error);
         }
+    });
+}
 
-    }
-);
+if (copyOfferButton) {
+    copyOfferButton.addEventListener("click", function () {
+        if (offerCode && offerCode.value) {
+            navigator.clipboard.writeText(offerCode.value);
+            console.log("Offer code copied.");
+        }
+    });
+}
 
-// ========================================
-// CREATE ANSWER
-// ========================================
-
-createAnswerButton.addEventListener(
-    "click",
-    async function () {
-
+if (createAnswerButton) {
+    createAnswerButton.addEventListener("click", async function () {
         try {
-
-            console.log(
-                "Create Answer clicked"
-            );
-
-            const receivedOfferCode =
-                receivedOffer.value.trim();
-
-            // Check if offer is empty
-            if (!receivedOfferCode) {
-
-                console.log(
-                    "No offer received."
-                );
-
-                return;
+            if (receivedOffer && receivedOffer.value) {
+                const code = await createAnswerCode(receivedOffer.value);
+                if (answerCode) answerCode.value = code;
+                console.log("Answer code generated successfully.");
+            } else {
+                console.warn("Please paste an offer code first.");
             }
-
-            const answer =
-                await createAnswerCode(
-                    peerConnection,
-                    receivedOfferCode
-                );
-
-            answerCode.value = answer;
-
-            console.log(
-                "Answer code generated."
-            );
-
         } catch (error) {
-
-            console.error(
-                "Failed to create answer:",
-                error
-            );
-
+            console.error("Failed to create answer:", error);
         }
+    });
+}
 
+if (copyAnswerButton) {
+    copyAnswerButton.addEventListener("click", function () {
+        if (answerCode && answerCode.value) {
+            navigator.clipboard.writeText(answerCode.value);
+            console.log("Answer code copied.");
+        }
+    });
+}
+
+if (applyAnswerButton) {
+    applyAnswerButton.addEventListener("click", async function () {
+        try {
+            if (receivedAnswer && receivedAnswer.value) {
+                await setAnswerCode(receivedAnswer.value);
+                console.log("Answer code applied successfully.");
+            } else {
+                console.warn("Please paste an answer code first.");
+            }
+        } catch (error) {
+            console.error("Failed to apply answer:", error);
+        }
+    });
+}
+
+// ========================================
+// 11. PHASE 4 — TEXT MESSAGING UI HANDLERS
+// ========================================
+
+function addMessage(text, sender) {
+    if (!messagesContainer) return;
+
+    const emptyMessage = messagesContainer.querySelector("p");
+    if (emptyMessage && emptyMessage.textContent === "No messages yet.") {
+        messagesContainer.innerHTML = "";
     }
-);
 
-// ========================================
-// COPY OFFER
-// ========================================
+    const messageElement = document.createElement("p");
+    messageElement.textContent = `${sender}: ${text}`;
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
-copyOfferButton.addEventListener(
-    "click",
-    async function () {
+// ---------- Send message ----------
 
-        if (!offerCode.value) {
-            console.log("No offer code to copy.");
+if (sendMessageButton) {
+    sendMessageButton.addEventListener("click", function () {
+        const message = messageInput.value.trim();
+        if (message === "") return;
+
+        const channel = getDataChannel();
+
+        if (!channel || channel.readyState !== "open") {
+            console.log("Data channel is not open.");
+            addMessage("Connection is not ready.", "System");
             return;
         }
 
-        try {
+        channel.send(message);
+        addMessage(message, "You");
+        messageInput.value = "";
+        console.log("Message sent:", message);
+    });
+}
 
-            await navigator.clipboard.writeText(
-                offerCode.value
-            );
+// ---------- Receive message ----------
 
-            copyOfferButton.textContent = "Copied!";
+window.addEventListener("p2p-message", function (event) {
+    const message = event.detail.message;
+    addMessage(message, "Peer");
+    console.log("Peer message displayed:", message);
+});
 
-            setTimeout(function () {
+// ---------- Data channel status ----------
 
-                copyOfferButton.textContent =
-                    "Copy Offer";
+window.addEventListener("p2p-datachannel-open", function () {
+    console.log("Main.js: Data channel is ready");
+    addMessage("Peer-to-peer messaging is ready.", "System");
+});
 
-            }, 1500);
-
-        } catch (error) {
-
-            console.error(
-                "Failed to copy offer:",
-                error
-            );
-
-        }
-
-    }
-);
-// ========================================
-// COPY ANSWER
-// ========================================
-
-copyAnswerButton.addEventListener(
-    "click",
-    async function () {
-
-        if (!answerCode.value) {
-            console.log("No answer code to copy.");
-            return;
-        }
-
-        try {
-
-            await navigator.clipboard.writeText(
-                answerCode.value
-            );
-
-            copyAnswerButton.textContent = "Copied!";
-
-            setTimeout(function () {
-
-                copyAnswerButton.textContent =
-                    "Copy Answer";
-
-            }, 1500);
-
-        } catch (error) {
-
-            console.error(
-                "Failed to copy answer:",
-                error
-            );
-
-        }
-
-    }
-);
-
-// ========================================
-// APPLY ANSWER / CONNECT
-// ========================================
-
-applyAnswerButton.addEventListener(
-    "click",
-    async function () {
-
-        try {
-
-            console.log("Connect button clicked.");
-
-            const receivedAnswerCode =
-                receivedAnswer.value.trim();
-
-            if (!receivedAnswerCode) {
-                console.log(
-                    "Please paste the answer code first."
-                );
-                return;
-            }
-
-            await setAnswerCode(
-                peerConnection,
-                receivedAnswerCode
-            );
-
-            console.log(
-                "Answer applied successfully."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Failed to apply answer:",
-                error
-            );
-
-        }
-
-    }
-);
+window.addEventListener("p2p-datachannel-close", function () {
+    console.log("Main.js: Data channel closed");
+    addMessage("Peer-to-peer connection closed.", "System");
+});

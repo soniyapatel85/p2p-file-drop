@@ -261,6 +261,29 @@
           </div>
         </section>
       </div>
+
+      <!-- ================= MESSAGE CHANNEL (NEW PHASE 4 CODE) ================= -->
+      <section id="message-section" style="margin-top: 2rem;">
+        <h2>Message Channel</h2>
+
+        <div class="message-box">
+          <label for="message-input">Send a message</label>
+          <textarea
+            id="message-input"
+            rows="3"
+            placeholder="Type a message..."
+            style="width: 100%; margin-top: 0.5rem;"
+          ></textarea>
+          <button id="send-message" style="margin-top: 0.5rem;">Send Message</button>
+        </div>
+
+        <div id="message-log" class="connection-log" aria-live="polite" style="margin-top: 1.5rem;">
+          <h3>Messages</h3>
+          <div id="messages">
+            <p>No messages yet.</p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- ================= JAVASCRIPT ================= -->
