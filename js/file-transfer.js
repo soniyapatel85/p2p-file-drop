@@ -1,12 +1,4 @@
-// ========================================
-// P2P FILE DROP
-// FILE TRANSFER SYSTEM
-// ========================================
-
-import {
-    getDataChannel
-} from "./peer.js";
-
+import { getDataChannel } from "./peer.js";
 
 // ========================================
 // CONFIGURATION
@@ -14,29 +6,25 @@ import {
 
 const CHUNK_SIZE = 16 * 1024;
 
-const MAX_BUFFERED_AMOUNT =
-    1024 * 1024;
+// Maximum amount of data allowed to remain
+// buffered inside the DataChannel.
+const MAX_BUFFERED_AMOUNT = 1024 * 1024;
 
-const LOW_BUFFERED_AMOUNT =
-    256 * 1024;
+// When buffer comes below this value,
+// sending can safely continue.
+const LOW_BUFFERED_AMOUNT = 256 * 1024;
 
 
 // ========================================
-// PROTOCOL TYPES
+// MESSAGE TYPES
 // ========================================
 
 const MESSAGE_TYPES = {
-
     TEXT: "text",
-
     FILE_START: "file-start",
-
     FILE_CHUNK: "file-chunk",
-
     FILE_END: "file-end",
-
     ERROR: "error"
-
 };
 
 
@@ -48,88 +36,72 @@ let receivingFile = null;
 
 
 // ========================================
-// SEND JSON MESSAGE
+// SEND CONTROL MESSAGE
 // ========================================
 
 function sendControlMessage(message) {
 
-    const channel =
-        getDataChannel();
-
+    const channel = getDataChannel();
 
     if (!channel) {
-
-        throw new Error(
-            "DataChannel does not exist."
-        );
-
+        throw new Error("DataChannel does not exist.");
     }
 
-
-    if (
-        channel.readyState !==
-        "open"
-    ) {
-
-        throw new Error(
-            "DataChannel is not open."
-        );
-
+    if (channel.readyState !== "open") {
+        throw new Error("DataChannel is not open.");
     }
 
-
-    channel.send(
-        JSON.stringify(message)
-    );
-
+    channel.send(JSON.stringify(message));
 }
 
 
 // ========================================
-// WAIT FOR BUFFER
+// WAIT FOR BUFFER TO BECOME LOW
 // ========================================
 
 function waitForBuffer(channel) {
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
 
-        if (
-            channel.bufferedAmount <=
-            LOW_BUFFERED_AMOUNT
-        ) {
-
+        // Already safe to continue
+        if (channel.bufferedAmount <= LOW_BUFFERED_AMOUNT) {
             resolve();
-
             return;
-
         }
 
+        channel.bufferedAmountLowThreshold = LOW_BUFFERED_AMOUNT;
 
-        channel.bufferedAmountLowThreshold =
-            LOW_BUFFERED_AMOUNT;
+        const handleLowBuffer = () => {
 
+            channel.removeEventListener(
+                "bufferedamountlow",
+                handleLowBuffer
+            );
 
-        const handleLowBuffer =
-            () => {
+            resolve();
+        };
 
-                channel.removeEventListener(
-                    "bufferedamountlow",
-                    handleLowBuffer
-                );
+        const handleClose = () => {
 
+            channel.removeEventListener(
+                "bufferedamountlow",
+                handleLowBuffer
+            );
 
-                resolve();
-
-            };
-
+            reject(new Error("DataChannel closed while waiting for buffer."));
+        };
 
         channel.addEventListener(
             "bufferedamountlow",
             handleLowBuffer
         );
 
+        channel.addEventListener(
+            "close",
+            handleClose,
+            { once: true }
+        );
     });
-
 }
 
 
@@ -140,53 +112,31 @@ function waitForBuffer(channel) {
 export function sendText(text) {
 
     if (!text || !text.trim()) {
-
         return false;
-
     }
-
 
     try {
 
         sendControlMessage({
-
             type: MESSAGE_TYPES.TEXT,
-
             text: text.trim(),
-
             timestamp: Date.now()
-
         });
-
 
         return true;
 
-    }
+    } catch (error) {
 
-    catch (error) {
-
-        console.error(
-            "Text send error:",
-            error
-        );
-
+        console.error("Text send error:", error);
 
         window.dispatchEvent(
-
-            new CustomEvent(
-                "p2p-transfer-error",
-                {
-                    detail: error.message
-                }
-            )
-
+            new CustomEvent("p2p-transfer-error", {
+                detail: error.message
+            })
         );
 
-
         return false;
-
     }
-
 }
 
 
@@ -196,143 +146,147 @@ export function sendText(text) {
 
 export async function sendFile(file) {
 
-    const channel =
-        getDataChannel();
-
+    const channel = getDataChannel();
 
     if (!channel) {
-
-        throw new Error(
-            "DataChannel not available."
-        );
-
+        throw new Error("DataChannel not available.");
     }
 
-
-    if (
-        channel.readyState !==
-        "open"
-    ) {
-
-        throw new Error(
-            "DataChannel is not open."
-        );
-
+    if (channel.readyState !== "open") {
+        throw new Error("DataChannel is not open.");
     }
-
 
     if (!file) {
-
-        throw new Error(
-            "No file selected."
-        );
-
+        throw new Error("No file selected.");
     }
 
 
-    console.log(
-        "Sending file:",
-        file.name
-    );
+    console.log("Sending file:", file.name);
 
+
+    // ========================================
+    // FILE INFORMATION
+    // ========================================
 
     const fileId =
-        `${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2)}`;
-
+        `${Date.now()}-${Math.random().toString(36).substring(2)}`;
 
     const totalChunks =
-        Math.ceil(
-            file.size /
-            CHUNK_SIZE
-        );
+        Math.ceil(file.size / CHUNK_SIZE);
 
 
-    // ====================================
-    // FILE START
-    // ====================================
+    // ========================================
+    // FILE START MESSAGE
+    // ========================================
 
     sendControlMessage({
 
         type: MESSAGE_TYPES.FILE_START,
 
-        fileId: fileId,
+        fileId,
 
         name: file.name,
 
         size: file.size,
 
         mimeType:
-            file.type ||
-            "application/octet-stream",
+            file.type || "application/octet-stream",
 
-        totalChunks: totalChunks
-
+        totalChunks
     });
 
 
     window.dispatchEvent(
+        new CustomEvent("file-send-start", {
 
-        new CustomEvent(
-            "file-send-start",
-            {
-                detail: {
+            detail: {
 
-                    fileName: file.name,
+                fileName: file.name,
 
-                    fileSize: file.size,
+                fileSize: file.size,
 
-                    totalChunks: totalChunks
-
-                }
+                totalChunks
             }
-        )
-
+        })
     );
 
 
-    const startTime =
-        performance.now();
+    // ========================================
+    // START TRANSFER
+    // ========================================
 
+    const startTime = performance.now();
 
     let offset = 0;
 
     let chunkIndex = 0;
 
 
-    // ====================================
-    // SEND CHUNKS
-    // ====================================
+    while (offset < file.size) {
 
-    while (
-        offset <
-        file.size
-    ) {
 
-        if (
-            channel.readyState !==
-            "open"
-        ) {
+        // ====================================
+        // CONNECTION CHECK
+        // ====================================
+
+        if (channel.readyState !== "open") {
 
             throw new Error(
                 "DataChannel closed during transfer."
             );
-
         }
 
 
-        if (
-            channel.bufferedAmount >
-            MAX_BUFFERED_AMOUNT
-        ) {
+        // ====================================
+        // BACKPRESSURE
+        // ====================================
 
-            await waitForBuffer(
-                channel
+        if (channel.bufferedAmount > MAX_BUFFERED_AMOUNT) {
+
+            console.log(
+                "Buffer full. Pausing transmission..."
             );
 
+            window.dispatchEvent(
+                new CustomEvent("p2p-backpressure", {
+
+                    detail: {
+
+                        bufferedAmount:
+                            channel.bufferedAmount,
+
+                        status: "paused"
+                    }
+                })
+            );
+
+
+            // Wait until browser buffer becomes low
+            await waitForBuffer(channel);
+
+
+            console.log(
+                "Buffer available. Resuming transmission..."
+            );
+
+            window.dispatchEvent(
+                new CustomEvent("p2p-backpressure", {
+
+                    detail: {
+
+                        bufferedAmount:
+                            channel.bufferedAmount,
+
+                        status: "resumed"
+                    }
+                })
+            );
         }
 
+
+        // ====================================
+        // CREATE CHUNK
+        // ====================================
 
         const chunk =
             file.slice(
@@ -345,23 +299,28 @@ export async function sendFile(file) {
             await chunk.arrayBuffer();
 
 
-        channel.send(
-            arrayBuffer
-        );
+        // ====================================
+        // SEND CHUNK
+        // ====================================
+
+        channel.send(arrayBuffer);
 
 
-        offset +=
-            arrayBuffer.byteLength;
+        // ====================================
+        // UPDATE POSITION
+        // ====================================
 
+        offset += arrayBuffer.byteLength;
 
         chunkIndex++;
 
 
+        // ====================================
+        // TRANSFER STATISTICS
+        // ====================================
+
         const elapsed =
-            (
-                performance.now() -
-                startTime
-            ) / 1000;
+            (performance.now() - startTime) / 1000;
 
 
         const speed =
@@ -371,8 +330,7 @@ export async function sendFile(file) {
 
 
         const remaining =
-            file.size -
-            offset;
+            file.size - offset;
 
 
         const eta =
@@ -383,87 +341,73 @@ export async function sendFile(file) {
 
         const progress =
             file.size > 0
-                ? (
-                    offset /
-                    file.size
-                ) * 100
+                ? (offset / file.size) * 100
                 : 100;
 
 
+        // ====================================
+        // SEND PROGRESS EVENT
+        // ====================================
+
         window.dispatchEvent(
+            new CustomEvent("file-send-progress", {
 
-            new CustomEvent(
-                "file-send-progress",
-                {
-                    detail: {
+                detail: {
 
-                        fileName:
-                            file.name,
+                    fileName: file.name,
 
-                        fileSize:
-                            file.size,
+                    fileSize: file.size,
 
-                        bytesSent:
-                            offset,
+                    bytesSent: offset,
 
-                        progress:
-                            progress,
+                    progress,
 
-                        speed:
-                            speed,
+                    speed,
 
-                        eta:
-                            eta,
+                    eta,
 
-                        chunkIndex:
-                            chunkIndex,
+                    chunkIndex,
 
-                        totalChunks:
-                            totalChunks
+                    totalChunks,
 
-                    }
+                    bufferedAmount:
+                        channel.bufferedAmount
                 }
-            )
-
+            })
         );
-
     }
 
 
-    // ====================================
-    // FILE END
-    // ====================================
+    // ========================================
+    // FILE END MESSAGE
+    // ========================================
 
     sendControlMessage({
 
         type: MESSAGE_TYPES.FILE_END,
 
-        fileId: fileId,
+        fileId,
 
         name: file.name,
 
         size: file.size
-
     });
 
 
+    // ========================================
+    // COMPLETE EVENT
+    // ========================================
+
     window.dispatchEvent(
+        new CustomEvent("file-send-complete", {
 
-        new CustomEvent(
-            "file-send-complete",
-            {
-                detail: {
+            detail: {
 
-                    fileName:
-                        file.name,
+                fileName: file.name,
 
-                    fileSize:
-                        file.size
-
-                }
+                fileSize: file.size
             }
-        )
-
+        })
     );
 
 
@@ -471,7 +415,6 @@ export async function sendFile(file) {
         "File sent successfully:",
         file.name
     );
-
 }
 
 
@@ -479,113 +422,68 @@ export async function sendFile(file) {
 // HANDLE INCOMING DATA
 // ========================================
 
-export async function handleIncomingData(
-    data
-) {
+export async function handleIncomingData(data) {
 
     try {
 
-        // =================================
-        // BINARY DATA
-        // =================================
+        // Binary chunk
+        if (data instanceof ArrayBuffer) {
 
-        if (
-            data instanceof ArrayBuffer
-        ) {
-
-            handleBinaryChunk(
-                data
-            );
+            handleBinaryChunk(data);
 
             return;
-
         }
 
 
-        // =================================
-        // BLOB DATA
-        // =================================
-
-        if (
-            data instanceof Blob
-        ) {
+        // Blob
+        if (data instanceof Blob) {
 
             const arrayBuffer =
                 await data.arrayBuffer();
 
-
-            handleBinaryChunk(
-                arrayBuffer
-            );
-
+            handleBinaryChunk(arrayBuffer);
 
             return;
-
         }
 
 
-        // =================================
-        // JSON CONTROL MESSAGE
-        // =================================
-
-        if (
-            typeof data ===
-            "string"
-        ) {
+        // Control message
+        if (typeof data === "string") {
 
             let message;
-
 
             try {
 
                 message =
                     JSON.parse(data);
 
-            }
-
-            catch {
+            } catch {
 
                 console.warn(
                     "Received non-JSON message:",
                     data
                 );
 
-
                 return;
-
             }
 
-
-            handleControlMessage(
-                message
-            );
-
+            handleControlMessage(message);
         }
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "Incoming data error:",
             error
         );
 
-
         window.dispatchEvent(
+            new CustomEvent("p2p-transfer-error", {
 
-            new CustomEvent(
-                "p2p-transfer-error",
-                {
-                    detail:
-                        error.message
-                }
-            )
-
+                detail: error.message
+            })
         );
-
     }
-
 }
 
 
@@ -593,32 +491,24 @@ export async function handleIncomingData(
 // HANDLE CONTROL MESSAGE
 // ========================================
 
-function handleControlMessage(
-    message
-) {
+function handleControlMessage(message) {
 
     if (!message || !message.type) {
-
         return;
-
     }
 
 
-    switch (
-        message.type
-    ) {
+    switch (message.type) {
 
         case MESSAGE_TYPES.TEXT:
 
             window.dispatchEvent(
-
                 new CustomEvent(
                     "p2p-text-message",
                     {
                         detail: message.text
                     }
                 )
-
             );
 
             break;
@@ -626,18 +516,14 @@ function handleControlMessage(
 
         case MESSAGE_TYPES.FILE_START:
 
-            startReceivingFile(
-                message
-            );
+            startReceivingFile(message);
 
             break;
 
 
         case MESSAGE_TYPES.FILE_END:
 
-            finishReceivingFile(
-                message
-            );
+            finishReceivingFile(message);
 
             break;
 
@@ -658,9 +544,7 @@ function handleControlMessage(
                 "Unknown message type:",
                 message.type
             );
-
     }
-
 }
 
 
@@ -668,9 +552,7 @@ function handleControlMessage(
 // START RECEIVING FILE
 // ========================================
 
-function startReceivingFile(
-    message
-) {
+function startReceivingFile(message) {
 
     console.log(
         "Receiving file:",
@@ -680,20 +562,15 @@ function startReceivingFile(
 
     receivingFile = {
 
-        fileId:
-            message.fileId,
+        fileId: message.fileId,
 
-        name:
-            message.name,
+        name: message.name,
 
-        size:
-            message.size,
+        size: message.size,
 
-        mimeType:
-            message.mimeType,
+        mimeType: message.mimeType,
 
-        totalChunks:
-            message.totalChunks,
+        totalChunks: message.totalChunks,
 
         receivedChunks: [],
 
@@ -701,34 +578,24 @@ function startReceivingFile(
 
         chunkIndex: 0,
 
-        startTime:
-            performance.now()
-
+        startTime: performance.now()
     };
 
 
     window.dispatchEvent(
+        new CustomEvent("file-receive-start", {
 
-        new CustomEvent(
-            "file-receive-start",
-            {
-                detail: {
+            detail: {
 
-                    fileName:
-                        message.name,
+                fileName: message.name,
 
-                    fileSize:
-                        message.size,
+                fileSize: message.size,
 
-                    totalChunks:
-                        message.totalChunks
-
-                }
+                totalChunks:
+                    message.totalChunks
             }
-        )
-
+        })
     );
-
 }
 
 
@@ -736,9 +603,7 @@ function startReceivingFile(
 // HANDLE BINARY CHUNK
 // ========================================
 
-function handleBinaryChunk(
-    data
-) {
+function handleBinaryChunk(data) {
 
     if (!receivingFile) {
 
@@ -747,33 +612,29 @@ function handleBinaryChunk(
         );
 
         return;
-
     }
 
 
-    receivingFile.receivedChunks.push(
-        data
-    );
-
+    receivingFile.receivedChunks.push(data);
 
     receivingFile.receivedBytes +=
         data.byteLength;
 
-
     receivingFile.chunkIndex++;
 
 
+    // ======================================
+    // RECEIVE STATISTICS
+    // ======================================
+
     const elapsed =
-        (
-            performance.now() -
-            receivingFile.startTime
-        ) / 1000;
+        (performance.now() -
+            receivingFile.startTime) / 1000;
 
 
     const speed =
         elapsed > 0
-            ? receivingFile.receivedBytes /
-              elapsed
+            ? receivingFile.receivedBytes / elapsed
             : 0;
 
 
@@ -797,11 +658,15 @@ function handleBinaryChunk(
             : 100;
 
 
-    window.dispatchEvent(
+    // ======================================
+    // RECEIVE PROGRESS
+    // ======================================
 
+    window.dispatchEvent(
         new CustomEvent(
             "file-receive-progress",
             {
+
                 detail: {
 
                     fileName:
@@ -813,27 +678,21 @@ function handleBinaryChunk(
                     bytesReceived:
                         receivingFile.receivedBytes,
 
-                    progress:
-                        progress,
+                    progress,
 
-                    speed:
-                        speed,
+                    speed,
 
-                    eta:
-                        eta,
+                    eta,
 
                     chunkIndex:
                         receivingFile.chunkIndex,
 
                     totalChunks:
                         receivingFile.totalChunks
-
                 }
             }
         )
-
     );
-
 }
 
 
@@ -841,9 +700,7 @@ function handleBinaryChunk(
 // FINISH RECEIVING FILE
 // ========================================
 
-function finishReceivingFile(
-    message
-) {
+function finishReceivingFile(message) {
 
     if (!receivingFile) {
 
@@ -852,7 +709,6 @@ function finishReceivingFile(
         );
 
         return;
-
     }
 
 
@@ -862,25 +718,36 @@ function finishReceivingFile(
     );
 
 
+    // ========================================
+    // CREATE FINAL BLOB
+    // ========================================
+
     const blob =
         new Blob(
             receivingFile.receivedChunks,
             {
-                type:
-                    receivingFile.mimeType
+                type: receivingFile.mimeType
             }
         );
 
+
+    // ========================================
+    // CREATE DOWNLOAD URL
+    // ========================================
 
     const downloadUrl =
         URL.createObjectURL(blob);
 
 
-    window.dispatchEvent(
+    // ========================================
+    // COMPLETE EVENT
+    // ========================================
 
+    window.dispatchEvent(
         new CustomEvent(
             "file-receive-complete",
             {
+
                 detail: {
 
                     fileName:
@@ -889,16 +756,12 @@ function finishReceivingFile(
                     fileSize:
                         receivingFile.size,
 
-                    blob:
-                        blob,
+                    blob,
 
-                    downloadUrl:
-                        downloadUrl
-
+                    downloadUrl
                 }
             }
         )
-
     );
 
 
@@ -908,7 +771,6 @@ function finishReceivingFile(
     );
 
 
-    receivingFile =
-        null;
-
+    // Reset receiving state
+    receivingFile = null;
 }
