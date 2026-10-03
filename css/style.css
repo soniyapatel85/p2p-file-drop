@@ -536,3 +536,19 @@ footer p {
     }
 
 }
+
+.file-verified,
+.file-verification-failed {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.file-verified {
+    color: #16803c;
+}
+
+.file-verification-failed {
+    color: #c62828;
+}
