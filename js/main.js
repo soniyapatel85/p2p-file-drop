@@ -923,7 +923,7 @@ scanOfferQRButton.addEventListener("click", async () => {
           console.log("QR Offer decoded successfully.");
         } catch (error) {
           console.error("QR decode failed:", error);
-          alert("Invalid QR code.");
+          alert("Invalid or unsupported QR code.");
         }
         
       },
