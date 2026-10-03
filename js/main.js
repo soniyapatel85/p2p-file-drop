@@ -1010,6 +1010,7 @@ scanAnswerQRButton.addEventListener("click", async () => {
           console.log("QR Answer applied successfully.");
         } catch (error) {
           console.error("QR Answer failed:", error);
+          alert("Error: " + error.message);
 
           await scanner.stop().catch(() => {});
           answerQRReader.hidden = true;
