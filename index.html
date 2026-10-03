@@ -148,36 +148,38 @@
           <!-- CREATE ANSWER -->
 
           <div class="form-group">
-            <button id="create-answer-receiver" type="button">
-              Create Answer
-            </button>
-          </div>
-          <button id="generate-answer-qr" type="button">
-            Generate Answer QR
-          </button>
+  <button id="create-answer-receiver" type="button">
+    Create Answer
+  </button>
+</div>
 
-          <div id="answer-qr" class="qr-container" hidden></div>
+<!-- ANSWER -->
+<div class="form-group">
+  <label for="receiver-answer-code">Your Answer</label>
 
-          <!-- ANSWER -->
+  <textarea
+    id="receiver-answer-code"
+    rows="8"
+    placeholder="Your answer will appear here..."
+    readonly
+  ></textarea>
+</div>
 
-          <div class="form-group">
-            <label for="receiver-answer-code"> Your Answer </label>
+<!-- ANSWER ACTIONS -->
+<div class="answer-actions">
 
-            <textarea
-              id="receiver-answer-code"
-              rows="8"
-              placeholder="Your answer will appear here..."
-              readonly
-            ></textarea>
-          </div>
+  <button id="generate-answer-qr" type="button">
+    Generate Answer QR
+  </button>
 
-          <!-- COPY ANSWER -->
+  <button id="copy-answer" type="button">
+    Copy Answer
+  </button>
 
-          <div class="form-group">
-            <button id="copy-answer" type="button">Copy Answer</button>
-          </div>
-        </section>
-      </div>
+</div>
+
+<div id="answer-qr" class="qr-container" hidden></div>
+</section>
 
       <!-- ========================================= -->
       <!-- PHASE 11 — TEXT CHAT -->
