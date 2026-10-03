@@ -235,3 +235,26 @@ export async function encodeOfferForQR(offer) {
         .replace(/\//g, "_")
         .replace(/=+$/, "");
 }
+
+export async function decodeOfferFromQR(encoded) {
+    // Base64URL → Base64
+    const base64 = encoded
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    const binary = atob(base64);
+
+    const bytes = Uint8Array.from(
+        binary,
+        char => char.charCodeAt(0)
+    );
+
+    // Gzip decompress
+    const stream = new Blob([bytes])
+        .stream()
+        .pipeThrough(new DecompressionStream("gzip"));
+
+    const json = await new Response(stream).text();
+
+    return json;
+}

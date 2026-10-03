@@ -11,6 +11,7 @@ import {
   createAnswerCode,
   setAnswerCode,
   encodeOfferForQR,
+  decodeOfferFromQR,
 } from "./signal.js";
 
 import { sendText, sendFile, handleIncomingData } from "./file-transfer.js";
@@ -913,12 +914,18 @@ scanOfferQRButton.addEventListener("click", async () => {
         qrbox: 250,
       },
       async (decodedText) => {
-        receivedOfferTextarea.value = decodedText;
+        try {
+          receivedOfferTextarea.value = await decodeOfferFromQR(decodedText);
 
-        await scanner.stop();
-        qrReader.hidden = true;
+          await scanner.stop();
+          qrReader.hidden = true;
 
-        console.log("QR Offer scanned successfully.");
+          console.log("QR Offer decoded successfully.");
+        } catch (error) {
+          console.error("QR decode failed:", error);
+          alert("Invalid QR code.");
+        }
+        
       },
     );
   } catch (error) {
