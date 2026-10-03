@@ -24,6 +24,13 @@ import {
     handleIncomingData
 } from "./file-transfer.js";
 
+import { encodeOfferForQR } from "./signal.js";
+
+const generateOfferQRButton =
+    document.getElementById("generate-offer-qr");
+
+const offerQRContainer =
+    document.getElementById("offer-qr");
 
 // ========================================
 // APPLICATION STATE

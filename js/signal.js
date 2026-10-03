@@ -215,3 +215,16 @@ export async function setAnswerCode(
     }
 
 }
+
+export function encodeOfferForQR(offer) {
+    const json = JSON.stringify(offer);
+    return btoa(
+        encodeURIComponent(json)
+            .replace(/%([0-9A-F]{2})/g, (_, p1) =>
+                String.fromCharCode(parseInt(p1, 16))
+            )
+    )
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+}

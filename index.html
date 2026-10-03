@@ -1,467 +1,283 @@
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>P2P File Drop</title>
 
-    <link rel="stylesheet" href="css/style.css">
-</head>
-
-<body>
-
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <body>
     <!-- ========================================= -->
     <!-- HEADER -->
     <!-- ========================================= -->
 
     <header class="app-header">
+      <div class="container">
+        <h1>P2P File Drop</h1>
 
-        <div class="container">
-
-            <h1>P2P File Drop</h1>
-
-            <p>
-                Secure peer-to-peer file sharing using WebRTC
-            </p>
-
-        </div>
-
+        <p>Secure peer-to-peer file sharing using WebRTC</p>
+      </div>
     </header>
 
-
     <main class="container">
+      <!-- ========================================= -->
+      <!-- CONNECTION STATUS -->
+      <!-- ========================================= -->
 
+      <section id="connection-section">
+        <h2>Connection Status</h2>
 
-        <!-- ========================================= -->
-        <!-- CONNECTION STATUS -->
-        <!-- ========================================= -->
+        <div id="connection-status" class="status-box" aria-live="polite">
+          Waiting for connection...
+        </div>
+      </section>
 
-        <section id="connection-section">
+      <!-- ========================================= -->
+      <!-- FILE SELECTION -->
+      <!-- ========================================= -->
 
-            <h2>Connection Status</h2>
+      <section id="file-section">
+        <h2>Select Files</h2>
 
-            <div
-                id="connection-status"
-                class="status-box"
-                aria-live="polite"
-            >
-                Waiting for connection...
-            </div>
+        <div class="file-input-container">
+          <label for="file-input" class="file-label"> Choose Files </label>
 
-        </section>
-
-
-        <!-- ========================================= -->
-        <!-- FILE SELECTION -->
-        <!-- ========================================= -->
-
-        <section id="file-section">
-
-            <h2>Select Files</h2>
-
-            <div class="file-input-container">
-
-                <label
-                    for="file-input"
-                    class="file-label"
-                >
-                    Choose Files
-                </label>
-
-                <input
-                    type="file"
-                    id="file-input"
-                    multiple
-                >
-
-            </div>
-
-
-            <div id="selected-files">
-
-                <p>No files selected.</p>
-
-            </div>
-
-        </section>
-
-
-        <!-- ========================================= -->
-        <!-- WEBRTC SIGNALING -->
-        <!-- ========================================= -->
-
-        <div class="transfer-grid">
-
-
-            <!-- ===================================== -->
-            <!-- SENDER -->
-            <!-- ===================================== -->
-
-            <section id="send-section">
-
-                <h2>Send</h2>
-
-
-                <!-- CREATE OFFER -->
-
-                <div class="form-group">
-
-                    <button
-                        id="create-offer"
-                        type="button"
-                    >
-                        Create Offer
-                    </button>
-
-                </div>
-
-
-                <!-- OFFER -->
-
-                <div class="form-group">
-
-                    <label for="offer-code">
-                        Your Offer
-                    </label>
-
-                    <textarea
-                        id="offer-code"
-                        rows="8"
-                        placeholder="Your offer will appear here..."
-                        readonly
-                    ></textarea>
-
-                </div>
-
-
-                <!-- COPY OFFER -->
-
-                <div class="form-group">
-
-                    <button
-                        id="copy-offer"
-                        type="button"
-                    >
-                        Copy Offer
-                    </button>
-
-                </div>
-
-
-                <!-- RECEIVED ANSWER -->
-
-                <div class="form-group">
-
-                    <label for="answer-code">
-                        Received Answer
-                    </label>
-
-                    <textarea
-                        id="answer-code"
-                        rows="8"
-                        placeholder="Paste receiver's answer here..."
-                    ></textarea>
-
-                </div>
-
-
-                <!-- APPLY ANSWER -->
-
-                <div class="form-group">
-
-                    <button
-                        id="create-answer"
-                        type="button"
-                    >
-                        Apply Answer
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <!-- ===================================== -->
-            <!-- RECEIVER -->
-            <!-- ===================================== -->
-
-            <section id="receive-section">
-
-                <h2>Receive</h2>
-
-
-                <!-- RECEIVED OFFER -->
-
-                <div class="form-group">
-
-                    <label for="received-offer">
-                        Received Offer
-                    </label>
-
-                    <textarea
-                        id="received-offer"
-                        rows="8"
-                        placeholder="Paste sender's offer here..."
-                    ></textarea>
-
-                </div>
-
-
-                <!-- CREATE ANSWER -->
-
-                <div class="form-group">
-
-                    <button
-                        id="create-answer-receiver"
-                        type="button"
-                    >
-                        Create Answer
-                    </button>
-
-                </div>
-
-
-                <!-- ANSWER -->
-
-                <div class="form-group">
-
-                    <label for="receiver-answer-code">
-                        Your Answer
-                    </label>
-
-                    <textarea
-                        id="receiver-answer-code"
-                        rows="8"
-                        placeholder="Your answer will appear here..."
-                        readonly
-                    ></textarea>
-
-                </div>
-
-
-                <!-- COPY ANSWER -->
-
-                <div class="form-group">
-
-                    <button
-                        id="copy-answer"
-                        type="button"
-                    >
-                        Copy Answer
-                    </button>
-
-                </div>
-
-            </section>
-
+          <input type="file" id="file-input" multiple />
         </div>
 
+        <div id="selected-files">
+          <p>No files selected.</p>
+        </div>
+      </section>
 
-        <!-- ========================================= -->
-        <!-- PHASE 11 — TEXT CHAT -->
-        <!-- ========================================= -->
+      <!-- ========================================= -->
+      <!-- WEBRTC SIGNALING -->
+      <!-- ========================================= -->
 
-        <section id="message-section">
+      <div class="transfer-grid">
+        <!-- ===================================== -->
+        <!-- SENDER -->
+        <!-- ===================================== -->
 
-            <h2>Text Chat</h2>
+        <section id="send-section">
+          <h2>Send</h2>
 
-            <p class="section-description">
-                Send text messages directly through the WebRTC DataChannel.
-            </p>
+          <!-- CREATE OFFER -->
 
+          <div class="form-group">
+            <button id="create-offer" type="button">Create Offer</button>
+          </div>
 
-            <!-- CHAT MESSAGES -->
+          <!-- OFFER -->
 
-            <div
-                id="messages"
-                class="chat-messages"
-                aria-live="polite"
-            >
+          <div class="form-group">
+            <label for="offer-code"> Your Offer </label>
 
-                <div class="chat-empty">
-                    No messages yet.
-                </div>
+            <textarea
+              id="offer-code"
+              rows="8"
+              placeholder="Your offer will appear here..."
+              readonly
+            ></textarea>
+          </div>
 
-            </div>
+          <!-- COPY OFFER -->
 
+          <div class="form-group">
+            <button id="copy-offer" type="button">Copy Offer</button>
+          </div>
 
-            <!-- CHAT INPUT -->
+          <!-- QR OFFER -->
+          <div class="form-group">
+            <button id="generate-offer-qr" type="button">Generate QR</button>
+          </div>
 
-            <div class="chat-input-area">
+          <div id="offer-qr" class="qr-container" hidden></div>
 
-                <label
-                    for="message-input"
-                    class="sr-only"
-                >
-                    Message
-                </label>
+          <!-- RECEIVED ANSWER -->
 
-                <textarea
-                    id="message-input"
-                    rows="2"
-                    placeholder="Type a message..."
-                ></textarea>
+          <div class="form-group">
+            <label for="answer-code"> Received Answer </label>
 
+            <textarea
+              id="answer-code"
+              rows="8"
+              placeholder="Paste receiver's answer here..."
+            ></textarea>
+          </div>
 
-                <button
-                    id="send-message"
-                    type="button"
-                >
-                    Send Message
-                </button>
+          <!-- APPLY ANSWER -->
 
-            </div>
-
+          <div class="form-group">
+            <button id="create-answer" type="button">Apply Answer</button>
+          </div>
         </section>
 
+        <!-- ===================================== -->
+        <!-- RECEIVER -->
+        <!-- ===================================== -->
 
-        <!-- ========================================= -->
-        <!-- PHASE 11 — MULTIPLE FILE TRANSFER -->
-        <!-- ========================================= -->
+        <section id="receive-section">
+          <h2>Receive</h2>
 
-        <section id="phase4-transfer">
+          <!-- RECEIVED OFFER -->
 
-            <h2>File Transfer</h2>
+          <div class="form-group">
+            <label for="received-offer"> Received Offer </label>
 
-            <p class="section-description">
-                Select one or multiple files and transfer them
-                directly to the connected peer.
-            </p>
+            <textarea
+              id="received-offer"
+              rows="8"
+              placeholder="Paste sender's offer here..."
+            ></textarea>
+          </div>
 
+          <!-- CREATE ANSWER -->
 
-            <!-- SEND FILES -->
+          <div class="form-group">
+            <button id="create-answer-receiver" type="button">
+              Create Answer
+            </button>
+          </div>
 
-            <div class="file-transfer-controls">
+          <!-- ANSWER -->
 
-                <button
-                    id="send-files"
-                    type="button"
-                >
-                    Send Selected Files
-                </button>
+          <div class="form-group">
+            <label for="receiver-answer-code"> Your Answer </label>
 
-            </div>
+            <textarea
+              id="receiver-answer-code"
+              rows="8"
+              placeholder="Your answer will appear here..."
+              readonly
+            ></textarea>
+          </div>
 
+          <!-- COPY ANSWER -->
 
-            <!-- TRANSFER STATUS -->
-
-            <div
-                id="transfer-status"
-                class="transfer-status"
-                aria-live="polite"
-            >
-                Waiting for connection...
-            </div>
-
-
-            <!-- CURRENT FILE -->
-
-            <div
-                id="current-file"
-                class="current-file"
-            ></div>
-
-
-            <!-- PROGRESS -->
-
-            <progress
-                id="transfer-progress"
-                value="0"
-                max="100"
-            ></progress>
-
-
-            <!-- TRANSFER INFORMATION -->
-
-            <div class="transfer-info">
-
-                <span id="transfer-speed">
-                    Speed: --
-                </span>
-
-                <span id="transfer-eta">
-                    ETA: --
-                </span>
-
-            </div>
-
-
-            <!-- ===================================== -->
-            <!-- RECEIVED FILES -->
-            <!-- ===================================== -->
-
-            <div id="received-files-section">
-
-                <h3>Received Files</h3>
-
-                <div id="received-files">
-
-                    <p>
-                        No files received yet.
-                    </p>
-
-                </div>
-
-            </div>
-
+          <div class="form-group">
+            <button id="copy-answer" type="button">Copy Answer</button>
+          </div>
         </section>
+      </div>
 
+      <!-- ========================================= -->
+      <!-- PHASE 11 — TEXT CHAT -->
+      <!-- ========================================= -->
 
-        <!-- ========================================= -->
-        <!-- CONNECTION LOG -->
-        <!-- ========================================= -->
+      <section id="message-section">
+        <h2>Text Chat</h2>
 
-        <section id="log-section">
+        <p class="section-description">
+          Send text messages directly through the WebRTC DataChannel.
+        </p>
 
-            <h2>Connection Log</h2>
+        <!-- CHAT MESSAGES -->
 
-            <div
-                id="connection-log"
-                class="connection-log"
-                aria-live="polite"
-            >
+        <div id="messages" class="chat-messages" aria-live="polite">
+          <div class="chat-empty">No messages yet.</div>
+        </div>
 
-                <p>
-                    Application started.
-                </p>
+        <!-- CHAT INPUT -->
 
-            </div>
+        <div class="chat-input-area">
+          <label for="message-input" class="sr-only"> Message </label>
 
-        </section>
+          <textarea
+            id="message-input"
+            rows="2"
+            placeholder="Type a message..."
+          ></textarea>
 
+          <button id="send-message" type="button">Send Message</button>
+        </div>
+      </section>
+
+      <!-- ========================================= -->
+      <!-- PHASE 11 — MULTIPLE FILE TRANSFER -->
+      <!-- ========================================= -->
+
+      <section id="phase4-transfer">
+        <h2>File Transfer</h2>
+
+        <p class="section-description">
+          Select one or multiple files and transfer them directly to the
+          connected peer.
+        </p>
+
+        <!-- SEND FILES -->
+
+        <div class="file-transfer-controls">
+          <button id="send-files" type="button">Send Selected Files</button>
+        </div>
+
+        <!-- TRANSFER STATUS -->
+
+        <div id="transfer-status" class="transfer-status" aria-live="polite">
+          Waiting for connection...
+        </div>
+
+        <!-- CURRENT FILE -->
+
+        <div id="current-file" class="current-file"></div>
+
+        <!-- PROGRESS -->
+
+        <progress id="transfer-progress" value="0" max="100"></progress>
+
+        <!-- TRANSFER INFORMATION -->
+
+        <div class="transfer-info">
+          <span id="transfer-speed"> Speed: -- </span>
+
+          <span id="transfer-eta"> ETA: -- </span>
+        </div>
+
+        <!-- ===================================== -->
+        <!-- RECEIVED FILES -->
+        <!-- ===================================== -->
+
+        <div id="received-files-section">
+          <h3>Received Files</h3>
+
+          <div id="received-files">
+            <p>No files received yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================= -->
+      <!-- CONNECTION LOG -->
+      <!-- ========================================= -->
+
+      <section id="log-section">
+        <h2>Connection Log</h2>
+
+        <div id="connection-log" class="connection-log" aria-live="polite">
+          <p>Application started.</p>
+        </div>
+      </section>
     </main>
-
 
     <!-- ========================================= -->
     <!-- FOOTER -->
     <!-- ========================================= -->
 
     <footer>
-
-        <div class="container">
-
-            <p>
-                P2P File Drop • WebRTC
-            </p>
-
-        </div>
-
+      <div class="container">
+        <p>P2P File Drop • WebRTC</p>
+      </div>
     </footer>
-
 
     <!-- ========================================= -->
     <!-- MAIN JAVASCRIPT -->
     <!-- ========================================= -->
 
-    <script
-        type="module"
-        src="js/main.js"
-    ></script>
-
-</body>
-
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>
 ```
