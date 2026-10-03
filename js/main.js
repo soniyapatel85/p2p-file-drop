@@ -753,7 +753,7 @@ function addReceivedFile(data) {
     ? "file-verified"
     : "file-verification-failed";
 
-  fileItem.appendChild(verificationStatus);
+  wrapper.appendChild(verificationStatus);
 
   wrapper.appendChild(name);
 
