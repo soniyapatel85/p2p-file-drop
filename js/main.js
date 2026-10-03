@@ -925,25 +925,33 @@ scanOfferQRButton.addEventListener("click", async () => {
     await scanner.start(
       { facingMode: "environment" },
       {
-        fps: 10,
-        qrbox: 250,
+        fps: 15,
+        qrbox: { width: 300, height: 300 },
+        aspectRatio: 1.0,
       },
       async (decodedText) => {
+        console.log("QR detected:", decodedText);
+
         try {
-          receivedOffer.value = await decodeOfferFromQR(decodedText);
+          const decodedOffer = await decodeOfferFromQR(decodedText);
+
+          receivedOffer.value = decodedOffer;
 
           await scanner.stop();
           qrReader.hidden = true;
 
-          console.log("QR Offer decoded successfully.");
+          addLog("QR Offer scanned successfully.");
+          updateConnectionStatus("Offer scanned. Create Answer.");
         } catch (error) {
           console.error("QR decode failed:", error);
+          alert("QR detected, but the Offer code is invalid.");
 
           await scanner.stop().catch(() => {});
           qrReader.hidden = true;
-
-          alert("Invalid or unsupported QR code.");
         }
+      },
+      () => {
+        // Ignore temporary scan failures.
       },
     );
   } catch (error) {
