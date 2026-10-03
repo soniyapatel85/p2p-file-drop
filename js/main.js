@@ -1,32 +1,27 @@
 // ========================================
 // P2P FILE DROP
 // MAIN APPLICATION
+// PHASE 11
 // ========================================
 
 
 import {
-
     peerConnection,
     createDataChannel
-
 } from "./peer.js";
 
 
 import {
-
     createOfferCode,
     createAnswerCode,
     setAnswerCode
-
 } from "./signal.js";
 
 
 import {
-
     sendText,
     sendFile,
     handleIncomingData
-
 } from "./file-transfer.js";
 
 
@@ -120,7 +115,9 @@ const copyAnswerButton =
     );
 
 
-// Messages
+// ========================================
+// CHAT
+// ========================================
 
 const messageInput =
     document.getElementById(
@@ -140,7 +137,9 @@ const messagesContainer =
     );
 
 
-// File transfer
+// ========================================
+// FILE TRANSFER
+// ========================================
 
 const sendFilesButton =
     document.getElementById(
@@ -178,7 +177,9 @@ const receivedFilesContainer =
     );
 
 
-// Log
+// ========================================
+// LOG
+// ========================================
 
 const connectionLog =
     document.getElementById(
@@ -196,21 +197,16 @@ function addLog(message) {
 
 
     if (!connectionLog) {
-
         return;
-
     }
 
 
     const time =
-        new Date()
-            .toLocaleTimeString();
+        new Date().toLocaleTimeString();
 
 
     const paragraph =
-        document.createElement(
-            "p"
-        );
+        document.createElement("p");
 
 
     paragraph.textContent =
@@ -235,7 +231,9 @@ function addLog(message) {
 function formatBytes(bytes) {
 
     if (
-        bytes === 0
+        bytes === 0 ||
+        !bytes ||
+        !Number.isFinite(bytes)
     ) {
 
         return "0 Bytes";
@@ -243,21 +241,12 @@ function formatBytes(bytes) {
     }
 
 
-    if (!bytes) {
-
-        return "0 Bytes";
-
-    }
-
-
     const units = [
-
         "Bytes",
         "KB",
         "MB",
         "GB",
         "TB"
-
     ];
 
 
@@ -268,11 +257,18 @@ function formatBytes(bytes) {
         );
 
 
+    const safeIndex =
+        Math.min(
+            index,
+            units.length - 1
+        );
+
+
     return (
         `${(
             bytes /
-            Math.pow(1024, index)
-        ).toFixed(2)} ${units[index]}`
+            Math.pow(1024, safeIndex)
+        ).toFixed(2)} ${units[safeIndex]}`
     );
 
 }
@@ -347,9 +343,7 @@ function formatTime(seconds) {
 // CLIPBOARD
 // ========================================
 
-async function copyToClipboard(
-    text
-) {
+async function copyToClipboard(text) {
 
     if (!text) {
 
@@ -377,9 +371,7 @@ function updateConnectionStatus(
 ) {
 
     if (!connectionStatus) {
-
         return;
-
     }
 
 
@@ -419,16 +411,13 @@ function renderSelectedFiles() {
         selectedFilesContainer.innerHTML =
             "<p>No files selected.</p>";
 
-
         return;
 
     }
 
 
     const list =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
 
     list.className =
@@ -439,9 +428,7 @@ function renderSelectedFiles() {
         (file, index) => {
 
             const item =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             item.className =
@@ -449,9 +436,7 @@ function renderSelectedFiles() {
 
 
             const info =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             info.className =
@@ -459,9 +444,7 @@ function renderSelectedFiles() {
 
 
             const name =
-                document.createElement(
-                    "strong"
-                );
+                document.createElement("strong");
 
 
             name.textContent =
@@ -469,31 +452,20 @@ function renderSelectedFiles() {
 
 
             const size =
-                document.createElement(
-                    "span"
-                );
+                document.createElement("span");
 
 
             size.textContent =
-                formatBytes(
-                    file.size
-                );
+                formatBytes(file.size);
 
 
-            info.appendChild(
-                name
-            );
+            info.appendChild(name);
 
-
-            info.appendChild(
-                size
-            );
+            info.appendChild(size);
 
 
             const removeButton =
-                document.createElement(
-                    "button"
-                );
+                document.createElement("button");
 
 
             removeButton.type =
@@ -508,32 +480,30 @@ function renderSelectedFiles() {
                 "click",
                 () => {
 
-                    selectedFilesState
-                        .splice(
-                            index,
-                            1
-                        );
+                    selectedFilesState.splice(
+                        index,
+                        1
+                    );
 
 
                     renderSelectedFiles();
+
+                    addLog(
+                        `Removed file: ${file.name}`
+                    );
 
                 }
             );
 
 
-            item.appendChild(
-                info
-            );
-
+            item.appendChild(info);
 
             item.appendChild(
                 removeButton
             );
 
 
-            list.appendChild(
-                item
-            );
+            list.appendChild(item);
 
         }
     );
@@ -591,8 +561,6 @@ createOfferButton.addEventListener(
             );
 
 
-            // Create DataChannel BEFORE offer
-
             createDataChannel();
 
 
@@ -619,9 +587,7 @@ createOfferButton.addEventListener(
 
         catch (error) {
 
-            console.error(
-                error
-            );
+            console.error(error);
 
 
             addLog(
@@ -689,7 +655,7 @@ copyOfferButton.addEventListener(
 
 
 // ========================================
-// CREATE ANSWER ON RECEIVER
+// CREATE ANSWER - RECEIVER
 // ========================================
 
 createAnswerReceiverButton.addEventListener(
@@ -748,9 +714,7 @@ createAnswerReceiverButton.addEventListener(
 
         catch (error) {
 
-            console.error(
-                error
-            );
+            console.error(error);
 
 
             addLog(
@@ -818,7 +782,7 @@ copyAnswerButton.addEventListener(
 
 
 // ========================================
-// APPLY ANSWER ON SENDER
+// APPLY ANSWER
 // ========================================
 
 applyAnswerButton.addEventListener(
@@ -872,9 +836,7 @@ applyAnswerButton.addEventListener(
 
         catch (error) {
 
-            console.error(
-                error
-            );
+            console.error(error);
 
 
             addLog(
@@ -1070,7 +1032,91 @@ window.addEventListener(
 
 
 // ========================================
-// SEND TEXT MESSAGE
+// ADD CHAT MESSAGE
+// ========================================
+
+function addMessage(
+    text,
+    sender
+) {
+
+    const emptyMessage =
+        messagesContainer.querySelector(
+            ".chat-empty"
+        );
+
+
+    if (emptyMessage) {
+
+        emptyMessage.remove();
+
+    }
+
+
+    const message =
+        document.createElement("div");
+
+
+    message.className =
+        "chat-message";
+
+
+    if (sender === "You") {
+
+        message.classList.add(
+            "sent"
+        );
+
+    }
+
+    else {
+
+        message.classList.add(
+            "received"
+        );
+
+    }
+
+
+    const senderElement =
+        document.createElement("strong");
+
+
+    senderElement.textContent =
+        sender;
+
+
+    const textElement =
+        document.createElement("span");
+
+
+    textElement.textContent =
+        text;
+
+
+    message.appendChild(
+        senderElement
+    );
+
+
+    message.appendChild(
+        textElement
+    );
+
+
+    messagesContainer.appendChild(
+        message
+    );
+
+
+    messagesContainer.scrollTop =
+        messagesContainer.scrollHeight;
+
+}
+
+
+// ========================================
+// SEND MESSAGE
 // ========================================
 
 function sendCurrentMessage() {
@@ -1080,9 +1126,7 @@ function sendCurrentMessage() {
 
 
     if (!text) {
-
         return;
-
     }
 
 
@@ -1160,83 +1204,6 @@ messageInput.addEventListener(
 
 
 // ========================================
-// ADD MESSAGE TO UI
-// ========================================
-
-function addMessage(
-    text,
-    sender
-) {
-
-    const noMessages =
-        messagesContainer.querySelector(
-            "p"
-        );
-
-
-    if (
-        noMessages &&
-        noMessages.textContent ===
-        "No messages yet."
-    ) {
-
-        noMessages.remove();
-
-    }
-
-
-    const message =
-        document.createElement(
-            "div"
-        );
-
-
-    message.className =
-        "message-item";
-
-
-    const senderElement =
-        document.createElement(
-            "strong"
-        );
-
-
-    senderElement.textContent =
-        `${sender}: `;
-
-
-    const textElement =
-        document.createElement(
-            "span"
-        );
-
-
-    textElement.textContent =
-        text;
-
-
-    message.appendChild(
-        senderElement
-    );
-
-
-    message.appendChild(
-        textElement
-    );
-
-
-    messagesContainer.appendChild(
-        message
-    );
-
-
-    messagesContainer.scrollTop =
-        messagesContainer.scrollHeight;
-
-}
-
-
-// ========================================
 // RECEIVE TEXT MESSAGE
 // ========================================
 
@@ -1263,7 +1230,7 @@ window.addEventListener(
 
 
 // ========================================
-// SEND SELECTED FILES
+// SEND MULTIPLE FILES
 // ========================================
 
 sendFilesButton.addEventListener(
@@ -1291,13 +1258,31 @@ sendFilesButton.addEventListener(
                 true;
 
 
+            const totalFiles =
+                selectedFilesState.length;
+
+
+            addLog(
+                `Starting transfer of ${totalFiles} file(s).`
+            );
+
+
             for (
-                const file of
-                selectedFilesState
+                let i = 0;
+                i < selectedFilesState.length;
+                i++
             ) {
 
+                const file =
+                    selectedFilesState[i];
+
+
                 transferStatus.textContent =
-                    `Sending ${file.name}...`;
+                    `Preparing file ${i + 1} of ${totalFiles}: ${file.name}`;
+
+
+                transferProgress.value =
+                    0;
 
 
                 await sendFile(
@@ -1313,7 +1298,7 @@ sendFilesButton.addEventListener(
 
 
             transferStatus.textContent =
-                "All selected files sent successfully.";
+                `All ${totalFiles} file(s) sent successfully.`;
 
 
             transferProgress.value =
@@ -1321,19 +1306,18 @@ sendFilesButton.addEventListener(
 
 
             transferSpeed.textContent =
-                "Speed: --";
+                "Speed: Complete";
 
 
             transferEta.textContent =
-                "ETA: --";
+                "ETA: 0s";
+
 
         }
 
         catch (error) {
 
-            console.error(
-                error
-            );
+            console.error(error);
 
 
             transferStatus.textContent =
@@ -1352,6 +1336,38 @@ sendFilesButton.addEventListener(
                 false;
 
         }
+
+    }
+);
+
+
+// ========================================
+// FILE HASH START
+// ========================================
+
+window.addEventListener(
+    "file-hash-start",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        transferStatus.textContent =
+            `Calculating SHA-256: ${data.fileName}`;
+
+
+        transferSpeed.textContent =
+            "Speed: calculating...";
+
+
+        transferEta.textContent =
+            "ETA: --";
+
+
+        addLog(
+            `Calculating SHA-256 for ${data.fileName}`
+        );
 
     }
 );
@@ -1574,9 +1590,7 @@ window.addEventListener(
 // ADD RECEIVED FILE
 // ========================================
 
-function addReceivedFile(
-    data
-) {
+function addReceivedFile(data) {
 
     const noFiles =
         receivedFilesContainer.querySelector(
@@ -1586,7 +1600,7 @@ function addReceivedFile(
 
     if (
         noFiles &&
-        noFiles.textContent ===
+        noFiles.textContent.trim() ===
         "No files received yet."
     ) {
 
@@ -1596,19 +1610,27 @@ function addReceivedFile(
 
 
     const wrapper =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
 
     wrapper.className =
         "received-file-item";
 
 
+    const fileInfo =
+        document.createElement("div");
+
+
+    fileInfo.className =
+        "transfer-file-info";
+
+
     const name =
-        document.createElement(
-            "strong"
-        );
+        document.createElement("strong");
+
+
+    name.className =
+        "transfer-file-name";
 
 
     name.textContent =
@@ -1616,9 +1638,11 @@ function addReceivedFile(
 
 
     const size =
-        document.createElement(
-            "span"
-        );
+        document.createElement("span");
+
+
+    size.className =
+        "transfer-file-size";
 
 
     size.textContent =
@@ -1627,10 +1651,64 @@ function addReceivedFile(
         );
 
 
-    const download =
-        document.createElement(
-            "a"
+    fileInfo.appendChild(
+        name
+    );
+
+
+    fileInfo.appendChild(
+        size
+    );
+
+
+    // ====================================
+    // VERIFICATION STATUS
+    // ====================================
+
+    const verificationStatus =
+        document.createElement("span");
+
+
+    verificationStatus.className =
+        "verification-status";
+
+
+    if (data.verified) {
+
+        verificationStatus.classList.add(
+            "verified"
         );
+
+
+        verificationStatus.textContent =
+            "✓ File Verified";
+
+    }
+
+    else {
+
+        verificationStatus.classList.add(
+            "failed"
+        );
+
+
+        verificationStatus.textContent =
+            "✗ Verification Failed";
+
+    }
+
+
+    fileInfo.appendChild(
+        verificationStatus
+    );
+
+
+    // ====================================
+    // DOWNLOAD
+    // ====================================
+
+    const download =
+        document.createElement("a");
 
 
     download.href =
@@ -1649,13 +1727,12 @@ function addReceivedFile(
         "download-link";
 
 
-    wrapper.appendChild(
-        name
-    );
+    // ====================================
+    // ADD TO WRAPPER
+    // ====================================
 
-
     wrapper.appendChild(
-        size
+        fileInfo
     );
 
 
@@ -1668,7 +1745,60 @@ function addReceivedFile(
         wrapper
     );
 
+
+    // ====================================
+    // LOG VERIFICATION
+    // ====================================
+
+    if (data.verified) {
+
+        addLog(
+            `✓ SHA-256 verified: ${data.fileName}`
+        );
+
+    }
+
+    else {
+
+        addLog(
+            `✗ SHA-256 verification failed: ${data.fileName}`
+        );
+
+    }
+
 }
+
+
+// ========================================
+// INTEGRITY RESULT
+// ========================================
+
+window.addEventListener(
+    "file-integrity-result",
+    (event) => {
+
+        const data =
+            event.detail;
+
+
+        if (data.verified) {
+
+            addLog(
+                `Integrity check passed for ${data.fileName}`
+            );
+
+        }
+
+        else {
+
+            addLog(
+                `Integrity check FAILED for ${data.fileName}`
+            );
+
+        }
+
+    }
+);
 
 
 // ========================================
@@ -1702,6 +1832,11 @@ window.addEventListener(
 
 addLog(
     "P2P File Drop loaded."
+);
+
+
+addLog(
+    "Phase 11: Multiple Files + Text Chat enabled."
 );
 
 
