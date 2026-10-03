@@ -102,12 +102,10 @@ const scanOfferQRButton = document.getElementById("scan-offer-qr");
 
 const qrReader = document.getElementById("qr-reader");
 
-const scanAnswerQRButton =
-    document.getElementById("scan-answer-qr");
+const scanAnswerQRButton = document.getElementById("scan-answer-qr");
 
-const answerQRReader =
-    document.getElementById("answer-qr-reader");
-    
+const answerQRReader = document.getElementById("answer-qr-reader");
+
 // ========================================
 // LOG FUNCTION
 // ========================================
@@ -926,7 +924,7 @@ scanOfferQRButton.addEventListener("click", async () => {
       },
       async (decodedText) => {
         try {
-          receivedOfferTextarea.value = await decodeOfferFromQR(decodedText);
+          receivedOffer.value = await decodeOfferFromQR(decodedText);
 
           await scanner.stop();
           qrReader.hidden = true;
@@ -934,81 +932,80 @@ scanOfferQRButton.addEventListener("click", async () => {
           console.log("QR Offer decoded successfully.");
         } catch (error) {
           console.error("QR decode failed:", error);
+
+          await scanner.stop().catch(() => {});
+          qrReader.hidden = true;
+
           alert("Invalid or unsupported QR code.");
         }
       },
     );
   } catch (error) {
     console.error("QR scanner error:", error);
-    alert("Unable to access camera.");
+
+    qrReader.hidden = true;
+
+    alert(
+      "Unable to access camera. Please allow camera permission or use manual copy-paste.",
+    );
   }
 });
 
-
 generateAnswerQRButton.addEventListener("click", async () => {
-    const answer = peerConnection?.localDescription;
+  const answer = peerConnection?.localDescription;
 
-    if (!answer) {
-        alert("Create Answer first.");
-        return;
-    }
+  if (!answer) {
+    alert("Create Answer first.");
+    return;
+  }
 
-    const answerCode = await encodeOfferForQR(answer);
+  const answerCode = await encodeOfferForQR(answer);
 
-    answerQRContainer.innerHTML = "";
-    answerQRContainer.hidden = false;
+  answerQRContainer.innerHTML = "";
+  answerQRContainer.hidden = false;
 
-    new QRCode(answerQRContainer, answerCode);
+  new QRCode(answerQRContainer, answerCode);
 });
 
-
-
 scanAnswerQRButton.addEventListener("click", async () => {
-    answerQRReader.hidden = false;
+  answerQRReader.hidden = false;
 
-    const scanner = new Html5Qrcode("answer-qr-reader");
+  const scanner = new Html5Qrcode("answer-qr-reader");
 
-    try {
-        await scanner.start(
-            { facingMode: "environment" },
-            {
-                fps: 10,
-                qrbox: 250,
-            },
-            async (decodedText) => {
-                try {
-                    const decodedAnswer =
-                        await decodeOfferFromQR(decodedText);
+  try {
+    await scanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: 250,
+      },
+      async (decodedText) => {
+        try {
+          const decodedAnswer = await decodeOfferFromQR(decodedText);
 
-                    await setAnswerCode(
-                        peerConnection,
-                        decodedAnswer
-                    );
+          await setAnswerCode(peerConnection, decodedAnswer);
 
-                    await scanner.stop();
-                    answerQRReader.hidden = true;
+          await scanner.stop();
+          answerQRReader.hidden = true;
 
-                    console.log(
-                        "QR Answer applied successfully."
-                    );
-                } catch (error) {
-                    console.error(
-                        "QR Answer failed:",
-                        error
-                    );
+          console.log("QR Answer applied successfully.");
+        } catch (error) {
+          console.error("QR Answer failed:", error);
 
-                    alert(
-                        "Invalid or unsupported Answer QR."
-                    );
-                }
-            }
-        );
-    } catch (error) {
-        console.error(
-            "QR scanner error:",
-            error
-        );
+          await scanner.stop().catch(() => {});
+          answerQRReader.hidden = true;
 
-        alert("Unable to access camera.");
-    }
+          alert("Invalid or unsupported Answer QR.");
+        }
+      },
+    );
+  } catch (error) {
+    console.error("QR scanner error:", error);
+
+    answerQRReader.hidden = true;
+
+    alert(
+      "Unable to access camera. Please allow camera permission or use manual copy-paste.",
+    );
+  }
 });
