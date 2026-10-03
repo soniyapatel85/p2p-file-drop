@@ -215,57 +215,54 @@ function renderSelectedFiles() {
 
   if (selectedFilesState.length === 0) {
     selectedFilesContainer.innerHTML = "<p>No files selected.</p>";
-
     return;
   }
 
   const list = document.createElement("div");
-
   list.className = "selected-file-list";
 
-  selectedFilesState.forEach((file, index) => {
-    const item = document.createElement("div");
+  let totalSize = 0;
 
+  selectedFilesState.forEach((file, index) => {
+    totalSize += file.size;
+
+    const item = document.createElement("div");
     item.className = "selected-file-item";
 
     const info = document.createElement("div");
-
     info.className = "selected-file-info";
 
     const name = document.createElement("strong");
-
     name.textContent = file.name;
 
     const size = document.createElement("span");
-
     size.textContent = formatBytes(file.size);
 
     info.appendChild(name);
-
     info.appendChild(size);
 
     const removeButton = document.createElement("button");
-
     removeButton.type = "button";
-
     removeButton.textContent = "Remove";
 
     removeButton.addEventListener("click", () => {
       selectedFilesState.splice(index, 1);
-
       renderSelectedFiles();
-
       addLog(`Removed file: ${file.name}`);
     });
 
     item.appendChild(info);
-
     item.appendChild(removeButton);
-
     list.appendChild(item);
   });
 
   selectedFilesContainer.appendChild(list);
+
+  const totalSizeElement = document.createElement("div");
+  totalSizeElement.className = "total-file-size";
+  totalSizeElement.textContent = `Total: ${selectedFilesState.length} file(s) • ${formatBytes(totalSize)}`;
+
+  selectedFilesContainer.appendChild(totalSizeElement);
 }
 
 // ========================================
@@ -273,11 +270,15 @@ function renderSelectedFiles() {
 // ========================================
 
 fileInput.addEventListener("change", () => {
-  selectedFilesState = Array.from(fileInput.files);
+  const newFiles = Array.from(fileInput.files);
+
+  selectedFilesState = [...selectedFilesState, ...newFiles];
 
   renderSelectedFiles();
 
-  addLog(`${selectedFilesState.length} file(s) selected.`);
+  addLog(
+    `${newFiles.length} file(s) added. Total: ${selectedFilesState.length}`,
+  );
 });
 
 // ========================================
