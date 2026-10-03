@@ -931,7 +931,7 @@ scanOfferQRButton.addEventListener("click", async () => {
       },
       async (decodedText) => {
         console.log("QR detected:", decodedText);
-
+        alert("QR DETECTED");
         try {
           const decodedOffer = await decodeOfferFromQR(decodedText);
 
