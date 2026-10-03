@@ -990,6 +990,7 @@ scanAnswerQRButton.addEventListener("click", async () => {
   answerQRReader.hidden = false;
 
   const scanner = new Html5Qrcode("answer-qr-reader");
+  let isProcessingAnswer = false;
 
   try {
     await scanner.start(
@@ -999,6 +1000,12 @@ scanAnswerQRButton.addEventListener("click", async () => {
         qrbox: 250,
       },
       async (decodedText) => {
+        if (isProcessingAnswer) {
+          return;
+        }
+
+        isProcessingAnswer = true;
+
         try {
           const decodedAnswer = await decodeOfferFromQR(decodedText);
 
@@ -1015,7 +1022,7 @@ scanAnswerQRButton.addEventListener("click", async () => {
           await scanner.stop().catch(() => {});
           answerQRReader.hidden = true;
 
-          alert("Invalid or unsupported Answer QR.");
+          alert(`Could not apply Answer QR: ${error.message}`);
         }
       },
     );
