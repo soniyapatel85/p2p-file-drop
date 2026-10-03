@@ -114,6 +114,9 @@
 
           <div class="form-group">
             <button id="create-answer" type="button">Apply Answer</button>
+            <button id="scan-answer-qr" type="button">Scan Answer QR</button>
+
+            <div id="answer-qr-reader" hidden></div>
           </div>
         </section>
 
@@ -149,6 +152,11 @@
               Create Answer
             </button>
           </div>
+          <button id="generate-answer-qr" type="button">
+            Generate Answer QR
+          </button>
+
+          <div id="answer-qr" class="qr-container" hidden></div>
 
           <!-- ANSWER -->
 
