@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,34 +13,50 @@
 
 <body>
 
+    <!-- ========================================= -->
+    <!-- HEADER -->
+    <!-- ========================================= -->
+
     <header class="app-header">
+
         <div class="container">
+
             <h1>P2P File Drop</h1>
-            <p>Secure peer-to-peer file sharing using WebRTC</p>
+
+            <p>
+                Secure peer-to-peer file sharing using WebRTC
+            </p>
+
         </div>
+
     </header>
 
 
     <main class="container">
 
-        <!-- ============================= -->
+
+        <!-- ========================================= -->
         <!-- CONNECTION STATUS -->
-        <!-- ============================= -->
+        <!-- ========================================= -->
 
         <section id="connection-section">
 
             <h2>Connection Status</h2>
 
-            <div id="connection-status" class="status-box">
+            <div
+                id="connection-status"
+                class="status-box"
+                aria-live="polite"
+            >
                 Waiting for connection...
             </div>
 
         </section>
 
 
-        <!-- ============================= -->
+        <!-- ========================================= -->
         <!-- FILE SELECTION -->
-        <!-- ============================= -->
+        <!-- ========================================= -->
 
         <section id="file-section">
 
@@ -47,7 +64,10 @@
 
             <div class="file-input-container">
 
-                <label for="file-input" class="file-label">
+                <label
+                    for="file-input"
+                    class="file-label"
+                >
                     Choose Files
                 </label>
 
@@ -59,6 +79,7 @@
 
             </div>
 
+
             <div id="selected-files">
 
                 <p>No files selected.</p>
@@ -68,17 +89,23 @@
         </section>
 
 
-        <!-- ============================= -->
-        <!-- CONNECTION / SIGNALING -->
-        <!-- ============================= -->
+        <!-- ========================================= -->
+        <!-- WEBRTC SIGNALING -->
+        <!-- ========================================= -->
 
         <div class="transfer-grid">
 
-            <!-- SEND SIDE -->
+
+            <!-- ===================================== -->
+            <!-- SENDER -->
+            <!-- ===================================== -->
 
             <section id="send-section">
 
                 <h2>Send</h2>
+
+
+                <!-- CREATE OFFER -->
 
                 <div class="form-group">
 
@@ -91,6 +118,8 @@
 
                 </div>
 
+
+                <!-- OFFER -->
 
                 <div class="form-group">
 
@@ -108,6 +137,8 @@
                 </div>
 
 
+                <!-- COPY OFFER -->
+
                 <div class="form-group">
 
                     <button
@@ -119,6 +150,8 @@
 
                 </div>
 
+
+                <!-- RECEIVED ANSWER -->
 
                 <div class="form-group">
 
@@ -135,6 +168,8 @@
                 </div>
 
 
+                <!-- APPLY ANSWER -->
+
                 <div class="form-group">
 
                     <button
@@ -149,11 +184,16 @@
             </section>
 
 
-            <!-- RECEIVE SIDE -->
+            <!-- ===================================== -->
+            <!-- RECEIVER -->
+            <!-- ===================================== -->
 
             <section id="receive-section">
 
                 <h2>Receive</h2>
+
+
+                <!-- RECEIVED OFFER -->
 
                 <div class="form-group">
 
@@ -170,6 +210,8 @@
                 </div>
 
 
+                <!-- CREATE ANSWER -->
+
                 <div class="form-group">
 
                     <button
@@ -181,6 +223,8 @@
 
                 </div>
 
+
+                <!-- ANSWER -->
 
                 <div class="form-group">
 
@@ -198,6 +242,8 @@
                 </div>
 
 
+                <!-- COPY ANSWER -->
+
                 <div class="form-group">
 
                     <button
@@ -214,25 +260,51 @@
         </div>
 
 
-        <!-- ============================= -->
-        <!-- TEXT MESSAGE -->
-        <!-- ============================= -->
+        <!-- ========================================= -->
+        <!-- PHASE 11 — TEXT CHAT -->
+        <!-- ========================================= -->
 
         <section id="message-section">
 
-            <h2>Peer-to-Peer Messages</h2>
+            <h2>Text Chat</h2>
 
-            <div class="message-box">
+            <p class="section-description">
+                Send text messages directly through the WebRTC DataChannel.
+            </p>
 
-                <label for="message-input">
-                    Send a message
+
+            <!-- CHAT MESSAGES -->
+
+            <div
+                id="messages"
+                class="chat-messages"
+                aria-live="polite"
+            >
+
+                <div class="chat-empty">
+                    No messages yet.
+                </div>
+
+            </div>
+
+
+            <!-- CHAT INPUT -->
+
+            <div class="chat-input-area">
+
+                <label
+                    for="message-input"
+                    class="sr-only"
+                >
+                    Message
                 </label>
 
                 <textarea
                     id="message-input"
-                    rows="3"
+                    rows="2"
                     placeholder="Type a message..."
                 ></textarea>
+
 
                 <button
                     id="send-message"
@@ -243,34 +315,24 @@
 
             </div>
 
-
-            <div
-                id="message-log"
-                class="connection-log"
-                aria-live="polite"
-            >
-
-                <h3>Messages</h3>
-
-                <div id="messages">
-
-                    <p>No messages yet.</p>
-
-                </div>
-
-            </div>
-
         </section>
 
 
-        <!-- ============================= -->
-        <!-- FILE TRANSFER -->
-        <!-- ============================= -->
+        <!-- ========================================= -->
+        <!-- PHASE 11 — MULTIPLE FILE TRANSFER -->
+        <!-- ========================================= -->
 
         <section id="phase4-transfer">
 
             <h2>File Transfer</h2>
 
+            <p class="section-description">
+                Select one or multiple files and transfer them
+                directly to the connected peer.
+            </p>
+
+
+            <!-- SEND FILES -->
 
             <div class="file-transfer-controls">
 
@@ -284,13 +346,26 @@
             </div>
 
 
+            <!-- TRANSFER STATUS -->
+
             <div
                 id="transfer-status"
                 class="transfer-status"
+                aria-live="polite"
             >
                 Waiting for connection...
             </div>
 
+
+            <!-- CURRENT FILE -->
+
+            <div
+                id="current-file"
+                class="current-file"
+            ></div>
+
+
+            <!-- PROGRESS -->
 
             <progress
                 id="transfer-progress"
@@ -298,6 +373,8 @@
                 max="100"
             ></progress>
 
+
+            <!-- TRANSFER INFORMATION -->
 
             <div class="transfer-info">
 
@@ -312,7 +389,9 @@
             </div>
 
 
+            <!-- ===================================== -->
             <!-- RECEIVED FILES -->
+            <!-- ===================================== -->
 
             <div id="received-files-section">
 
@@ -320,7 +399,9 @@
 
                 <div id="received-files">
 
-                    <p>No files received yet.</p>
+                    <p>
+                        No files received yet.
+                    </p>
 
                 </div>
 
@@ -329,9 +410,9 @@
         </section>
 
 
-        <!-- ============================= -->
+        <!-- ========================================= -->
         <!-- CONNECTION LOG -->
-        <!-- ============================= -->
+        <!-- ========================================= -->
 
         <section id="log-section">
 
@@ -340,9 +421,12 @@
             <div
                 id="connection-log"
                 class="connection-log"
+                aria-live="polite"
             >
 
-                <p>Application started.</p>
+                <p>
+                    Application started.
+                </p>
 
             </div>
 
@@ -350,6 +434,10 @@
 
     </main>
 
+
+    <!-- ========================================= -->
+    <!-- FOOTER -->
+    <!-- ========================================= -->
 
     <footer>
 
@@ -364,6 +452,10 @@
     </footer>
 
 
+    <!-- ========================================= -->
+    <!-- MAIN JAVASCRIPT -->
+    <!-- ========================================= -->
+
     <script
         type="module"
         src="js/main.js"
@@ -372,3 +464,4 @@
 </body>
 
 </html>
+```
