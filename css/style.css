@@ -912,3 +912,448 @@ footer p {
         text-align: center;
     }
 }
+
+
+
+
+
+
+
+
+
+
+/* ========================================
+   PHASE 15 — MODERN UI OVERRIDES
+   Existing CSS preserved
+======================================== */
+
+/* ---------- BODY ---------- */
+
+body {
+    background:
+        radial-gradient(circle at top left, #b9e6ff 0%, transparent 42%),
+        linear-gradient(135deg, #d5efff 0%, #e6f5ff 55%, #c9eaff 100%);
+    color: #172033;
+}
+
+/* ---------- CONTAINER ---------- */
+
+.container {
+    max-width: 1250px;
+}
+
+/* ---------- HEADER ---------- */
+
+.app-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    padding: 38px 0;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18);
+}
+
+.app-header h1 {
+    font-size: 36px;
+    letter-spacing: -0.7px;
+}
+
+.app-header p {
+    color: #dbeafe;
+}
+
+/* ---------- ALL SECTIONS ---------- */
+
+section {
+    background: #ffffff;
+    border: 1px solid #d8e3f0;
+    border-radius: 14px;
+    box-shadow: 0 7px 24px rgba(30, 64, 175, 0.08);
+    transition:
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+section:hover {
+    border-color: #c3d7ef;
+    box-shadow: 0 9px 28px rgba(30, 64, 175, 0.11);
+}
+
+section h2 {
+    color: #172554;
+    font-size: 23px;
+}
+
+section h3 {
+    color: #1e3a8a;
+}
+
+/* ---------- SECTION DESCRIPTION ---------- */
+
+.section-description {
+    color: #64748b;
+}
+
+/* ---------- STATUS ---------- */
+
+.status-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    border-radius: 10px;
+}
+
+.status-box.connected {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.status-box.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.status-box.warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+/* ---------- FILE SELECT AREA ---------- */
+
+.file-input-container {
+    padding: 22px;
+    background: #f4f8ff;
+    border: 2px dashed #bfdbfe;
+    border-radius: 13px;
+    text-align: center;
+    transition: 0.2s ease;
+}
+
+.file-input-container:hover {
+    background: #eef6ff;
+    border-color: #60a5fa;
+}
+
+.file-label {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    padding: 13px 24px;
+    border-radius: 9px;
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.22);
+    transition: 0.2s ease;
+}
+
+.file-label:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-2px);
+}
+
+/* ---------- SELECTED FILES ---------- */
+
+#selected-files {
+    margin-top: 15px;
+}
+
+.selected-file-list {
+    gap: 11px;
+}
+
+.selected-file-item {
+    background: #f8fbff;
+    border: 1px solid #d7e3f0;
+    border-radius: 10px;
+    padding: 14px;
+    transition: 0.2s ease;
+}
+
+.selected-file-item:hover {
+    background: #f1f7ff;
+    border-color: #93c5fd;
+}
+
+.selected-file-info strong {
+    color: #1e293b;
+}
+
+.selected-file-info span {
+    color: #64748b;
+}
+
+/* Current JS creates normal button inside selected-file-item */
+.selected-file-item button {
+    background: #ef4444;
+    border-radius: 7px;
+    padding: 8px 13px;
+}
+
+.selected-file-item button:hover {
+    background: #dc2626;
+}
+
+/* ---------- TOTAL FILE SIZE ---------- */
+
+.total-file-size {
+    margin-top: 5px;
+    padding: 12px 15px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 9px;
+    color: #1e40af;
+    font-weight: bold;
+}
+
+/* ---------- TRANSFER GRID ---------- */
+
+.transfer-grid {
+    gap: 28px;
+}
+
+/* ---------- FORM ---------- */
+
+.form-group label {
+    color: #334155;
+}
+
+/* ---------- TEXTAREAS ---------- */
+
+textarea {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    color: #1e293b;
+    transition: 0.2s ease;
+}
+
+textarea:hover {
+    border-color: #94a3b8;
+}
+
+textarea:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* ---------- BUTTONS ---------- */
+
+button {
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    box-shadow: 0 3px 9px rgba(37, 99, 235, 0.16);
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.23);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    background: #94a3b8;
+    box-shadow: none;
+}
+
+/* ---------- CHAT ---------- */
+
+.chat-messages {
+    background: #f8fbff;
+    border: 1px solid #d8e3f0;
+    border-radius: 11px;
+}
+
+.chat-message.sent {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.chat-message.received {
+    background: #e8eef6;
+    color: #1e293b;
+}
+
+/* ---------- TRANSFER STATUS ---------- */
+
+.transfer-status {
+    background: #f8fbff;
+    border: 1px solid #d8e3f0;
+    border-radius: 10px;
+}
+
+/* ---------- CURRENT FILE ---------- */
+
+.current-file {
+    color: #334155;
+}
+
+.transfer-info {
+    color: #64748b;
+}
+
+/* ---------- PROGRESS ---------- */
+
+progress {
+    height: 22px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* ---------- RECEIVED FILES ---------- */
+
+.received-file-item {
+    background: #f8fbff;
+    border: 1px solid #d8e3f0;
+    border-radius: 10px;
+    transition: 0.2s ease;
+}
+
+.received-file-item:hover {
+    background: #f1f7ff;
+    border-color: #93c5fd;
+}
+
+.download-link {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border-radius: 7px;
+}
+
+.download-link:hover {
+    background: #15803d;
+}
+
+/* ---------- MULTIPLE TRANSFER FILES ---------- */
+
+.transfer-file-item {
+    background: #f8fbff;
+    border: 1px solid #d8e3f0;
+    border-radius: 10px;
+}
+
+.transfer-file-item:hover {
+    border-color: #93c5fd;
+}
+
+/* ---------- VERIFICATION ---------- */
+
+.verification-status.verified {
+    background: #dcfce7;
+    border: 1px solid #a7f3d0;
+}
+
+.verification-status.failed {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+/* ---------- CONNECTION LOG ---------- */
+
+.connection-log {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+}
+
+/* ---------- QR CONTAINERS ---------- */
+
+.qr-container {
+    margin-top: 14px;
+    padding: 18px;
+    background: #f8fbff;
+    border: 1px solid #d8e3f0;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.qr-container canvas,
+.qr-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+/* ---------- QR SCANNER ---------- */
+
+#qr-reader,
+#answer-qr-reader {
+    margin-top: 15px;
+    padding: 12px;
+    background: #f8fbff;
+    border: 1px solid #d8e3f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#qr-reader video,
+#answer-qr-reader video {
+    border-radius: 8px;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer {
+    background: linear-gradient(135deg, #0f172a, #172554);
+    color: #cbd5e1;
+    border-top: 1px solid #1e3a8a;
+}
+
+/* ========================================
+   MOBILE UI
+======================================== */
+
+@media (max-width: 800px) {
+
+    section {
+        padding: 22px;
+    }
+
+    .app-header h1 {
+        font-size: 30px;
+    }
+
+    .transfer-grid {
+        gap: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .container {
+        width: 94%;
+    }
+
+    section {
+        padding: 18px;
+        border-radius: 11px;
+    }
+
+    .app-header {
+        padding: 25px 0;
+    }
+
+    .app-header h1 {
+        font-size: 26px;
+    }
+
+    .file-input-container {
+        padding: 18px;
+    }
+
+    .file-label {
+        width: 100%;
+        text-align: center;
+    }
+
+    .qr-container {
+        padding: 12px;
+    }
+}
+
+
