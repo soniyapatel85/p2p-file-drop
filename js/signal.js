@@ -216,14 +216,21 @@ export async function setAnswerCode(
 
 }
 
-export function encodeOfferForQR(offer) {
+export async function encodeOfferForQR(offer) {
     const json = JSON.stringify(offer);
-    return btoa(
-        encodeURIComponent(json)
-            .replace(/%([0-9A-F]{2})/g, (_, p1) =>
-                String.fromCharCode(parseInt(p1, 16))
-            )
-    )
+    const stream = new Blob([json]).stream().pipeThrough(
+        new CompressionStream("gzip")
+    );
+
+    const compressed = await new Response(stream).arrayBuffer();
+    const bytes = new Uint8Array(compressed);
+
+    let binary = "";
+    bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary)
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/, "");
