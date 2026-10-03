@@ -322,7 +322,12 @@ generateOfferQRButton.addEventListener("click", async () => {
   offerQRContainer.innerHTML = "";
   offerQRContainer.hidden = false;
 
-  new QRCode(offerQRContainer, offerCode);
+  new QRCode(offerQRContainer, {
+    text: offerCode,
+    width: 320,
+    height: 320,
+    correctLevel: QRCode.CorrectLevel.L,
+  });
 });
 
 // ========================================
@@ -965,7 +970,12 @@ generateAnswerQRButton.addEventListener("click", async () => {
   answerQRContainer.innerHTML = "";
   answerQRContainer.hidden = false;
 
-  new QRCode(answerQRContainer, answerCode);
+  new QRCode(answerQRContainer, {
+    text: answerCode,
+    width: 320,
+    height: 320,
+    correctLevel: QRCode.CorrectLevel.L,
+  });
 });
 
 scanAnswerQRButton.addEventListener("click", async () => {
